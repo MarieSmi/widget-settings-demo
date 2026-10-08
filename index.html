@@ -486,7 +486,9 @@ button:focus-visible { outline: 2px solid var(--border-info); outline-offset: 2p
   border-radius: var(--r-pill);
   background: var(--swatch-color, var(--bg));
 }
-.swatch:hover { box-shadow: 0 0 0 2px var(--bg-hover); }
+/* Ховер — как в компоненте colorBtn (Figma 10466:51085): кружок растёт с 24 до 28 px от центра,
+   обводка остаётся 1 px. Отрицательный отступ сохраняет раскладку соседей. */
+.swatch:hover { width: 28px; height: 28px; margin: -2px; }
 /* Выключено: белый круг, перечёркнутый по диагонали */
 .swatch[data-off] {
   background:
@@ -775,9 +777,10 @@ button.swatch-clear:hover { color: var(--icon-secondary); }
   border-radius: var(--r-pill);
   background: var(--c);
 }
-.palette__item:hover { box-shadow: 0 0 0 2px var(--bg-hover); }
+/* Ховер — по аналогии с colorBtn (+4 px от центра): у кружка 28 px своего состояния в файле нет */
+.palette__item:hover { width: 32px; height: 32px; margin: -2px; }
 .palette__item[data-none] { border: 0; background: none; }
-.palette__item[data-none] svg { display: block; }
+.palette__item[data-none] svg { display: block; width: 100%; height: 100%; }
 
 .picker__links {
   display: flex;
