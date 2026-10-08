@@ -1,0 +1,10 @@
+# Исходники шрифтов (копии лежат в assets/)
+Шрифт/
+
+# Vercel
+.vercel
+
+# Системное
+Thumbs.db
+desktop.ini
+.DS_Store

@@ -1,0 +1,1387 @@
+<title>Настройка виджета</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap">
+<style>
+/* Сцена: окно настроек слева от виджета, как в макете (Figma 11931:124266).
+   Прототип повторяет светлый интерфейс продукта, поэтому тема одна — светлая. */
+:root {
+  color-scheme: light;
+
+  /* Цвета — переменные из Figma */
+  --page-bg: #e9f5ff;                       /* фон дашборда */
+  --bg: #ffffff;                            /* Background/background-color */
+  --bg-contrast: #f3f5f7;                   /* Background/contrast_background-color — подложка окна */
+  --bg-pale: rgba(51, 51, 51, 0.05);        /* Background/Contrast/pale_color — плашки контента, кнопки-стрелки */
+  --bg-hover: #f3f4f8;                      /* Background/hover_background-color */
+  --success: #12a12c;                       /* Background/Contrast/success_color — кнопка ✓ */
+
+  --text: #000000;                          /* Text/text-color */
+  --text-label: #8991a9;                    /* Text/label_text-color */
+  --text-label-contrast: #656c87;           /* Text/label_contrast_text-color */
+  --text-link: #2562aa;                     /* Text/link_text-color */
+  --text-secondary: #313e78;                /* Text/secondary_text-color */
+
+  --icon: #333333;                          /* Icon/icon-color */
+  --icon-secondary: #656c87;                /* Icon/secondary_icon-color */
+  --icon-unaccented: #cccccc;               /* Icon/unaccented_icon-color */
+  --icon-label: #8991a9;                    /* Icon/label_icon-color */
+  --icon-info: #5a49ab;                     /* Icon/info_icon-color */
+  --icon-danger: #c2140a;                   /* Icon/danger_icon-color */
+  --icon-primary: #f47843;                  /* Icon/primary_icon-color — стрелка «назад» в экранах */
+
+  --border: #eaeaea;                        /* Border/border-color */
+  --border-unaccented: #d2d6da;             /* Border/unaccented_border-color — обводка свотчей, подчёркивание полей */
+  --border-info: #7b62f8;                   /* Border/info_border-color — рамка выделения виджета */
+
+  --toolbar-bg: #eeebff;                    /* Background/Same/info_same_background-color */
+  --toolbar-bg-active: #d4ccff;             /* Background/Same/info_active_same_background-color */
+  --toolbar-border: rgba(123, 98, 248, 0.25);
+
+  --brand: #0085f2;                         /* Extra/brand_color — маркер по умолчанию */
+
+  /* Тени */
+  --shadow-widget: 0 0 8px rgba(0, 0, 0, 0.06);                                   /* shadow_c */
+  --shadow-window: 0 0 46px rgba(0, 0, 0, 0.12), 0 0 15px rgba(0, 0, 0, 0.12);     /* shadow_a */
+  --shadow-toolbar: 0 0 9px rgba(0, 0, 0, 0.12);                                  /* shadow_a, blur 18 / 2 */
+  --shadow-button: 0 0 3px rgba(0, 0, 0, 0.1);                                    /* shadow_d */
+  --shadow-popup: 0 4px 18px rgba(0, 0, 0, 0.12);                                 /* shadow_a_0.4 */
+
+  /* Отступы */
+  --sp-3xs: 2px;
+  --sp-2xs: 4px;
+  --sp-xs: 6px;
+  --sp-s: 8px;
+  --sp-st: 10px;
+  --sp-m: 12px;
+
+  /* Скругления */
+  --r-3xs: 2px;
+  --r-2xs: 4px;
+  --r-xs: 6px;
+  --r-s: 8px;
+  --r-m: 12px;
+  --r-l: 16px;
+  --r-pill: 100px;
+
+  /* Типографика: Inter, letter-spacing −1.41% */
+  --font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --tracking: -0.0141em;
+  --fs-s: 13px;
+  --fs-m: 14px;     /* подписи, ссылки */
+  --fs-l: 15px;     /* заголовок экрана «Стиль» */
+  --fs-xl: 16px;    /* название в шапке окна */
+  --fs-2xl: 17px;   /* заголовок пикера */
+  --fs-3xl: 18px;   /* заголовок виджета */
+  --fw-regular: 400;
+  --fw-bold: 600;
+
+  /* Размеры */
+  --widget-w: 557px;
+  --widget-h: 280px;
+  --window-w: 350px;
+  --window-gap: 8px;      /* окно настроек: left −358px = 350 + 8 */
+  --swatch: 24px;
+  --swatch-l: 28px;       /* кружки палитры в пикерах */
+}
+
+/* Иконочные шрифты продукта, как в макете: cbuc-icons24 — иконки 24 px, cbuc-icons — иконки 16 px.
+   Коды глифов у них общие. */
+@font-face {
+  font-family: "cbuc-icons24";
+  src: url("assets/cbuc-icons24.ttf") format("truetype");
+  font-display: block;
+}
+@font-face {
+  font-family: "cbuc-icons";
+  src: url("assets/cbuc-icons.ttf") format("truetype");
+  font-display: block;
+}
+
+* { box-sizing: border-box; }
+
+/* Иконка-глиф: <i class="ico" data-i="gear"></i> — 24 px, <i class="ico ico--s" …> — 16 px.
+   Код глифа — в ICONS (скрипт внизу) */
+.ico {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 24px;
+  height: 24px;
+  padding-bottom: 1px;
+  font-family: "cbuc-icons24";
+  font-size: 24px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: 0;
+  speak: never;
+}
+.ico--s { width: 16px; height: 16px; font-family: "cbuc-icons"; font-size: 16px; }
+
+html, body { height: 100%; }
+
+body {
+  margin: 0;
+  background: var(--page-bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: var(--fs-m);
+  letter-spacing: var(--tracking);
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  font: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+button:focus-visible { outline: 2px solid var(--border-info); outline-offset: 2px; }
+
+.icon { display: block; flex: none; }
+
+/* ---------- Сцена ---------- */
+
+.stage {
+  min-height: 100%;
+  overflow-x: auto;
+  padding: 88px 16px 48px;
+  display: flex;
+  justify-content: center;
+}
+
+/* Ширина сцены = окно + зазор + виджет; окно позиционируется от виджета, как в макете */
+.scene {
+  position: relative;
+  flex: none;
+  width: calc(var(--window-w) + var(--window-gap) + var(--widget-w));
+  padding-left: calc(var(--window-w) + var(--window-gap));
+}
+
+/* ---------- Виджет в режиме редактирования ---------- */
+
+.widget-frame {
+  position: relative;
+  width: var(--widget-w);
+  height: var(--widget-h);
+  border: 1px solid var(--border-info);
+  border-radius: var(--r-3xs);
+}
+
+/* Слот под сам виджет — наполняется на этапе 2 */
+.widget-slot {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.handle {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: var(--bg);
+  border: 1px solid var(--border-info);
+  border-radius: 7px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+.handle--top    { left: 50%; top: 0; }
+.handle--bottom { left: 50%; top: 100%; }
+.handle--left   { left: 0;   top: 50%; }
+.handle--right  { left: 100%; top: 50%; }
+
+/* Тулбар — только для вида, клики не обрабатываются */
+.toolbar {
+  position: absolute;
+  left: 0;
+  top: -42px;
+  display: flex;
+  background: var(--toolbar-bg);
+  border: 1px solid var(--toolbar-border);
+  border-radius: var(--r-xs);
+  filter: drop-shadow(var(--shadow-toolbar));
+  overflow: hidden;
+  pointer-events: none;
+}
+.toolbar__item {
+  display: flex;
+  width: 36px;
+  padding: 4px 6px;
+  color: var(--icon);
+}
+.toolbar__item--active {
+  background: var(--toolbar-bg-active);
+  color: var(--icon-info);
+}
+.toolbar__item--danger { color: var(--icon-danger); }
+
+/* ---------- Виджет ----------
+   --w-fill: заливка фона (цвет или градиент), --w-title: цвет заголовка, --w-marker: цвет маркера.
+   data-fill="widget"  — фон на всей карточке (стили «внутри», «без заголовка»);
+   data-fill="content" — заголовок на фоне страницы, фон только под контентом (стиль «снаружи»);
+   data-bg="off"       — без фона и тени (стиль «без фона»). */
+
+.w {
+  --w-fill: var(--bg);
+  --w-title: var(--text);
+  --w-marker: var(--brand);
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 0 var(--sp-m) var(--sp-m);
+  background: var(--w-fill);
+  border-radius: var(--r-s);
+  box-shadow: var(--shadow-widget);
+  overflow: hidden;
+}
+
+.w__header {
+  display: flex;
+  align-items: center;
+  height: 24px;
+  margin-top: var(--sp-m);
+  padding-right: var(--sp-m);
+  flex: none;
+}
+.w__title {
+  margin: 0;
+  font-size: var(--fs-3xl);
+  font-weight: var(--fw-bold);
+  line-height: 1.4;
+  color: var(--w-title);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Маркер — у левого края карточки, на уровне первой строки */
+.w__marker {
+  position: absolute;
+  left: 0;
+  top: 13px;
+  width: 4px;
+  height: 22px;
+  color: var(--w-marker);
+}
+
+.w__content {
+  flex: 1;
+  min-height: 0;
+  padding-top: 2px;
+}
+
+/* Заглушка контента: три плашки 246 / 145 / 204 × 24 */
+.w__lines {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-s);
+  width: 246px;
+  max-width: 100%;
+}
+.w__line {
+  height: 24px;
+  border-radius: var(--r-xs);
+  background: var(--bg-pale);
+}
+.w__line:nth-child(2) { width: 145px; }
+.w__line:nth-child(3) { width: 204px; }
+
+/* Заголовок выключен: контент поднимается к верхнему отступу */
+.w[data-title="off"] .w__header { display: none; }
+.w[data-title="off"] .w__content { padding-top: var(--sp-m); }
+
+.w[data-marker="off"] .w__marker { display: none; }
+
+/* Стиль «снаружи»: карточка прозрачная, фон и тень переходят на контент */
+.w[data-fill="content"] {
+  gap: 4px;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+  overflow: visible;
+}
+.w[data-fill="content"] .w__header { padding-left: var(--sp-m); }
+.w[data-fill="content"] .w__content {
+  padding: 14px var(--sp-m) var(--sp-m);
+  background: var(--w-fill);
+  border-radius: var(--r-s);
+  box-shadow: var(--shadow-widget);
+}
+
+/* Без фона: ни заливки, ни тени */
+.w[data-bg="off"],
+.w[data-bg="off"] .w__content {
+  background: transparent;
+  box-shadow: none;
+}
+
+
+/* ---------- Окно настроек ---------- */
+
+/* Слот под окно — наполняется на этапах 3–5 */
+.settings-slot {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: var(--window-w);
+}
+
+/* Окно: серая подложка, внутри белые «облачка» */
+.win {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 0 var(--sp-2xs) var(--sp-2xs);
+  background: var(--bg-contrast);
+  border-radius: var(--r-m);
+  box-shadow: var(--shadow-window);
+  overflow: hidden;
+}
+
+.win__head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3xs);
+  height: 44px;
+  padding: 6px 0 6px var(--sp-s);
+}
+
+/* Название — поле ввода, оформленное как текст с подчёркиванием */
+.win__name {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 2px;
+  height: 28px;
+  min-width: 0;
+  padding-left: var(--sp-2xs);
+}
+.win__name input {
+  field-sizing: content;
+  min-width: 40px;
+  max-width: 220px;
+  margin: 0;
+  padding: 0 0 1px;
+  border: 0;
+  border-bottom: 1px solid var(--border-unaccented);
+  background: none;
+  font: var(--fw-bold) var(--fs-xl) / normal var(--font);
+  letter-spacing: var(--tracking);
+  color: var(--text);
+  outline: none;
+}
+.win__name input:focus { border-bottom-color: var(--text-link); }
+
+.win__cmds {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--sp-m);
+  padding: 0 var(--sp-2xs) 0 var(--sp-st);
+}
+
+.btn-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--r-pill);
+  color: var(--icon-secondary);
+}
+.btn-icon:hover { background: var(--bg-hover); }
+
+.btn-apply {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--r-pill);
+  background: var(--success);
+  color: var(--bg);
+  filter: drop-shadow(var(--shadow-button));
+}
+
+.win__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2xs);
+}
+
+.cloud {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-s);
+  padding: var(--sp-s) var(--sp-m);
+  background: var(--bg);
+  border-radius: var(--r-s);
+}
+
+.cloud--stub {
+  height: 100px;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-label);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-s);
+  min-height: 24px;
+}
+.row__grow { flex: 1; min-width: 0; display: flex; align-items: center; }
+
+.label { color: var(--text-label); white-space: nowrap; }
+
+.link {
+  color: var(--text-link);
+  white-space: nowrap;
+  text-align: left;
+}
+.link:hover { text-decoration: underline; text-underline-offset: 3px; }
+.link[disabled], .btn-arrow[disabled] { cursor: default; text-decoration: none; }
+
+/* Круглая кнопка со стрелкой › */
+.btn-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--r-pill);
+  background: var(--bg-pale);
+  color: var(--icon-label);
+}
+.btn-arrow svg { transform: rotate(180deg); }
+.btn-arrow:not([disabled]):hover { background: rgba(51, 51, 51, 0.15); }
+.cloud > .btn-arrow { position: absolute; right: var(--sp-m); top: var(--sp-s); }
+
+/* Ряд свотчей «Фон / Заголовок / Маркер» */
+.swatches {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-m);
+}
+.swatch-field { display: flex; align-items: center; gap: var(--sp-s); height: 24px; }
+.swatch-wrap { display: flex; align-items: center; gap: 2px; }
+
+.swatch {
+  width: var(--swatch);
+  height: var(--swatch);
+  flex: none;
+  border: 1px solid var(--border-unaccented);
+  border-radius: var(--r-pill);
+  background: var(--swatch-color, var(--bg));
+}
+.swatch:hover { box-shadow: 0 0 0 2px var(--bg-hover); }
+/* Выключено: белый круг, перечёркнутый по диагонали */
+.swatch[data-off] {
+  background:
+    linear-gradient(to top right, transparent calc(50% - .5px), var(--border-unaccented) calc(50% - .5px),
+                    var(--border-unaccented) calc(50% + .5px), transparent calc(50% + .5px)),
+    var(--bg);
+}
+
+.swatch-clear {
+  display: flex;
+  width: 16px;
+  height: 17px;
+  color: var(--icon-unaccented);
+}
+button.swatch-clear:hover { color: var(--icon-secondary); }
+
+/* ---------- Экран «Стиль» ---------- */
+
+/* Шапка подэкрана: кнопка «назад» + название */
+.win__title { display: flex; align-items: center; }
+.win__title h3 {
+  margin: 0;
+  padding: 0 0 1px 6px;
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-bold);
+  line-height: 28px;
+}
+.btn-back {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--r-pill);
+  background: var(--bg);
+  color: var(--icon-primary);
+  filter: drop-shadow(var(--shadow-button));
+}
+.btn-icon[data-idle] { color: var(--icon-unaccented); }
+
+/* Сетка «подпись — редактор» */
+.form {
+  display: grid;
+  grid-template-columns: 77px 1fr;
+  gap: var(--sp-s);
+  align-items: center;
+}
+.form--narrow { grid-template-columns: 52px 1fr; }
+.form > * { min-height: 24px; display: flex; align-items: center; min-width: 0; }
+.label--strong {
+  color: var(--text);
+  font-size: var(--fs-l);
+  font-weight: var(--fw-bold);
+}
+.editor { display: flex; align-items: center; gap: 2px; }
+.editor--wide { gap: var(--sp-s); }
+.text-link-static { color: var(--text-link); white-space: nowrap; }
+
+/* Тень — статичный свотч: шахматка + половинка цвета */
+.swatch-shadow {
+  position: relative;
+  width: 24px;
+  height: 24px;
+  flex: none;
+  padding: 1px;
+  border: 1px solid var(--border-unaccented);
+  border-radius: 24px;
+  background: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)), var(--bg);
+  overflow: hidden;
+}
+.swatch-shadow::before {   /* шахматка, в макете — с прозрачностью 15% */
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: url("assets/checker.png") top left / 8px 8px;
+  opacity: 0.15;
+}
+.swatch-shadow::after {    /* половинка цвета тени */
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 11px;
+  height: 22px;
+  border-radius: 12px 0 0 12px;
+  background: #000;
+}
+
+/* Скругления — статичное поле «8» и переключатель «по углам» */
+.radius { flex: 1; display: flex; align-items: center; position: relative; }
+.radius__field {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-xs);
+  width: 56px;
+  height: 24px;
+  border-bottom: 1px solid var(--border-unaccented);
+  color: var(--text);
+}
+.radius__switch { position: absolute; right: 0; color: var(--icon-secondary); font-size: 20px; } /* icon-size_st = 20 */
+
+/* Чипсы под облачками */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-s);
+  padding: var(--sp-2xs) 0 var(--sp-2xs) var(--sp-m);
+}
+.chip {
+  display: flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 var(--sp-m);
+  border-radius: var(--r-pill);
+  background: var(--bg);
+  color: var(--text-label-contrast);
+}
+.chip[disabled] { cursor: default; }
+.chip:not([disabled]):hover { color: var(--text); }
+
+/* Выпадашка «Заливка фоном» */
+.menu {
+  position: absolute;
+  left: 106px;
+  top: 153px;
+  z-index: 2;
+  width: 217px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px;
+  background: var(--bg);
+  border-radius: var(--r-s);
+  filter: drop-shadow(0 0 9px rgba(0, 0, 0, 0.12));
+}
+.menu__head { display: flex; justify-content: space-between; align-items: flex-start; }
+.menu__title {
+  height: 28px;
+  display: flex;
+  align-items: center;
+  padding: 0 var(--sp-m) 0 22px;
+  color: var(--text-label);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+}
+.menu__close { display: flex; padding: 2px 4px 0 0; color: var(--icon-secondary); }
+.menu__close svg { width: 24px; height: 24px; }
+.menu__item {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 32px;
+  padding: 0 16px 0 8px;
+  border-radius: 20px;
+  font-size: var(--fs-l);
+  text-align: left;
+}
+.menu__item:hover { background: var(--bg-hover); }
+.menu__bullet { width: 12px; height: 12px; flex: none; color: var(--marker-color, #cc3d00); }
+
+/* ---------- Пикер цвета (Figma: «окно текста/фона со сбросом», 366 px) ---------- */
+
+.picker {
+  position: absolute;
+  z-index: 3;
+  width: 366px;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-contrast);
+  border-radius: var(--r-m);
+  filter: drop-shadow(0 0 23px rgba(0, 0, 0, 0.12)) drop-shadow(0 0 7.5px rgba(0, 0, 0, 0.12));
+}
+
+.picker__head { display: flex; align-items: center; min-height: 56px; }
+.picker__caption {
+  align-self: stretch;
+  display: flex;
+  align-items: flex-end;
+  padding: 0 0 19px 16px;
+  font-size: var(--fs-2xl);
+  line-height: normal;
+  white-space: nowrap;
+}
+.picker__mid { flex: 1; display: flex; align-items: center; padding-left: 6px; }
+.picker__cmds { display: flex; align-items: center; gap: var(--sp-m); padding-right: var(--sp-m); }
+.picker__tools { display: flex; align-items: center; gap: var(--sp-xs); }
+.picker__tool {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--r-pill);
+  color: var(--icon-secondary);
+}
+.picker__tool[disabled] { cursor: default; }
+.picker__tool[data-idle] { color: var(--icon-unaccented); }
+.picker__close { display: flex; padding-right: var(--sp-s); color: var(--icon-secondary); }
+.picker__close svg { width: 24px; height: 24px; }
+
+/* Тумблер «Цвет / Картинка» (только у фона) */
+.tumbler {
+  display: flex;
+  gap: 2px;
+  padding: 1px;
+  border-radius: var(--r-pill);
+  background: var(--bg-pale);
+}
+.tumbler__item {
+  display: flex;
+  align-items: center;
+  height: 26px;
+  padding: 0 var(--sp-m);
+  border-radius: var(--r-pill);
+  font-size: var(--fs-l);
+  color: var(--text-label-contrast);
+  cursor: default;
+}
+.tumbler__item[aria-pressed="true"] {
+  background: var(--bg);
+  color: var(--text);
+  filter: drop-shadow(var(--shadow-button));
+}
+
+.picker__body { display: flex; flex-direction: column; gap: var(--sp-2xs); padding: 0 var(--sp-2xs) var(--sp-2xs); }
+.pcloud { background: var(--bg); border-radius: var(--r-s); padding: var(--sp-s) var(--sp-m); }
+.pcloud--colors { padding: 0 var(--sp-m); }
+
+.picker__code { display: flex; align-items: center; justify-content: space-between; }
+.picker__current {
+  width: 70px;
+  height: 32px;
+  border: 1px solid var(--border-unaccented);
+  border-radius: 18px;
+  background: var(--current, var(--bg));
+}
+.picker__current[data-none] {
+  background:
+    linear-gradient(to top right, transparent calc(50% - .5px), var(--border-unaccented) calc(50% - .5px),
+                    var(--border-unaccented) calc(50% + .5px), transparent calc(50% + .5px)),
+    var(--bg);
+}
+.picker__fields { display: flex; align-items: center; gap: var(--sp-s); }
+
+/* Поля с подчёркиванием */
+.ufield {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  height: 24px;
+  padding-bottom: 3px;
+  border-bottom: 1px solid var(--border-unaccented);
+}
+.ufield input {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  letter-spacing: inherit;
+  color: var(--text);
+  outline: none;
+}
+.ufield:focus-within { border-bottom-color: var(--text-link); }
+.ufield--format { width: 46px; }
+.ufield--format .ico { position: absolute; right: 0; top: calc(50% - 8.5px); color: var(--icon-unaccented); }
+.ufield--hex { width: 66px; }
+.ufield--alpha { width: 24px; }
+.ufield--alpha input { text-align: right; }
+.picker__alpha { display: flex; align-items: flex-end; gap: var(--sp-2xs); }
+.picker__alpha .pct { width: 11px; height: 24px; display: flex; align-items: flex-end; padding-bottom: 3px; }
+
+/* Палитра 28 px, 10 в ряд */
+.palette {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 6px;
+  padding: var(--sp-m) 0 2px;
+}
+.palette__item {
+  width: var(--swatch-l);
+  height: var(--swatch-l);
+  border: 1px solid var(--border-unaccented);
+  border-radius: var(--r-pill);
+  background: var(--c);
+}
+.palette__item:hover { box-shadow: 0 0 0 2px var(--bg-hover); }
+.palette__item[data-none] { border: 0; background: none; }
+.palette__item[data-none] svg { display: block; }
+
+.picker__links {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-m);
+  padding: 16px 0 var(--sp-m);
+}
+.picker__links::before { content: ""; height: 1px; margin: 0 12px; background: var(--border); }
+.picker__links > div { display: flex; gap: 20px; height: 24px; padding-left: 2px; }
+.plink { color: var(--text-secondary); white-space: nowrap; }
+.plink:not([disabled]):hover { text-decoration: underline; text-underline-offset: 3px; }
+.plink[disabled] { cursor: default; }
+
+/* ---------- Узкие экраны ---------- */
+@media (max-width: 960px) {
+  .stage { justify-content: flex-start; padding-top: 64px; }
+}
+</style>
+
+<!-- Векторные иконки. Остальные иконки — глифы шрифта cbuc-icons (см. ICONS в скрипте).
+     Все SVG ниже — из Figma. -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <!-- Figma: markerWrap (4×22) -->
+    <symbol id="i-marker" viewBox="0 0 4 22"><path d="M0 0L4 3.67647V18.0784L0 22V0Z" fill="currentColor"/></symbol>
+    <!-- Figma: Ui базовый набор / Навигация стрелки / BackText (16×16) -->
+    <symbol id="i-arrow-back" viewBox="0 0 16 16"><path d="M5 8L9 14L10 14L6 8L10 2L9 2L5 8Z" fill="currentColor"/></symbol>
+
+    <!-- Figma: Скругления / all (12×12) -->
+    <symbol id="i-radius" viewBox="0 0 12 12"><g fill="none" stroke="currentColor" stroke-linecap="round"><path d="M7.5 11.5H9.5C10.6046 11.5 11.5 10.6046 11.5 9.5V7.5"/><path d="M7.5 0.5H9.5C10.6046 0.5 11.5 1.39543 11.5 2.5V4.5"/><path d="M4.5 11.5H2.5C1.39543 11.5 0.5 10.6046 0.5 9.5V7.5"/><path d="M4.5 0.5H2.5C1.39543 0.5 0.5 1.39543 0.5 2.5V4.5"/></g></symbol>
+    <!-- Figma: _closeButton меню (32×32) -->
+    <symbol id="i-menu-close" viewBox="0 0 32 32"><path d="M21.7917 20.875C21.9306 20.9861 22 21.1389 22 21.3333C22 21.5278 21.9306 21.6806 21.7917 21.7917C21.7361 21.875 21.6667 21.9306 21.5833 21.9583C21.5 21.9861 21.4167 22 21.3333 22C21.25 22 21.1667 21.9861 21.0833 21.9583C21 21.9306 20.9306 21.875 20.875 21.7917L16 16.9583L11.125 21.7917C11.0694 21.875 11 21.9306 10.9167 21.9583C10.8333 21.9861 10.75 22 10.6667 22C10.5833 22 10.5 21.9861 10.4167 21.9583C10.3333 21.9306 10.2639 21.875 10.2083 21.7917C10.0694 21.6806 10 21.5278 10 21.3333C10 21.1389 10.0694 20.9861 10.2083 20.875L15.0417 16L10.2083 11.125C10.0694 11.0139 10 10.8611 10 10.6667C10 10.4722 10.0694 10.3194 10.2083 10.2083C10.3194 10.0694 10.4722 10 10.6667 10C10.8611 10 11.0139 10.0694 11.125 10.2083L16 15.0417L20.875 10.2083C20.9861 10.0694 21.1389 10 21.3333 10C21.5278 10 21.6806 10.0694 21.7917 10.2083C21.9306 10.3194 22 10.4722 22 10.6667C22 10.8611 21.9306 11.0139 21.7917 11.125L16.9583 16L21.7917 20.875Z" fill="currentColor"/></symbol>
+    <!-- Figma: маркер выбранного пункта меню (12×12) -->
+    <symbol id="i-bullet" viewBox="0 0 12 12"><circle cx="6" cy="6" r="3" fill="currentColor"/></symbol>
+
+    <!-- Figma: eyedropper-alt (16×16) -->
+    <symbol id="i-pipette" viewBox="0 0 16 16"><path d="M12.2337 0.64521L10.5286 2.35089L10.3306 2.15463C9.72406 1.54564 8.66847 1.54143 8.05011 2.16053C7.42332 2.78636 7.42332 3.80724 8.05011 4.43476L8.24724 4.63186L1.4857 11.3914C0.995394 11.8816 0.769616 12.5841 0.869026 13.2706L0.382929 13.7583C-0.12844 14.2468 -0.126755 15.1279 0.382929 15.6164C0.869868 16.1277 1.75192 16.1277 2.24223 15.6173L2.72832 15.1296C3.41324 15.2307 4.11837 15.0032 4.60868 14.5138L11.3702 7.75431L11.5665 7.95057C12.1941 8.57809 13.2144 8.57809 13.847 7.94551C14.4738 7.31799 14.4738 6.29711 13.847 5.67128L13.6516 5.47333L15.3567 3.7685C16.2152 2.94472 16.2143 1.4673 15.355 0.64521C14.9254 0.215632 14.3601 0 13.7948 0C13.2295 0 12.6634 0.215632 12.2337 0.64521V0.64521ZM10.8252 3.24542L12.8294 1.24157C13.3441 0.726072 14.2447 0.726071 14.7611 1.24325C15.2902 1.75032 15.291 2.66423 14.7611 3.17214L12.7569 5.176C12.5918 5.33941 12.5918 5.60726 12.7569 5.77151L13.2506 6.26595C13.5496 6.56412 13.5496 7.05098 13.2464 7.35505C12.9473 7.65407 12.462 7.65407 12.1621 7.35505L8.64572 3.83925C8.34749 3.54023 8.34749 3.05422 8.65078 2.75099C8.94058 2.45786 9.44521 2.45786 9.73502 2.75099L10.2295 3.24542C10.3121 3.32713 10.4199 3.36756 10.5278 3.36756C10.6356 3.36756 10.7434 3.32713 10.8252 3.24542V3.24542ZM0.978545 14.3538L1.62471 13.7069C1.73086 13.6008 1.77129 13.4466 1.73423 13.3026C1.60954 12.8216 1.73844 12.3306 2.08132 11.9869L8.8437 5.22738L10.7746 7.15795L4.01307 13.9183C3.67103 14.2603 3.17988 14.39 2.69799 14.2654C2.55141 14.2283 2.39808 14.2696 2.29277 14.3749L1.64745 15.0218C1.55057 15.122 1.44021 15.1641 1.33238 15.1641C0.968435 15.1641 0.637351 14.6823 0.978545 14.3538V14.3538Z" fill="currentColor"/></symbol>
+    <!-- Figma: «нет фона» — первый кружок палитры (28×28) -->
+    <symbol id="i-no-color" viewBox="0 0 28 28"><clipPath id="nc-clip"><rect width="28" height="28" rx="14"/></clipPath><path d="M28 0L0 28" stroke="#D2D6DA" clip-path="url(#nc-clip)"/><rect x="0.5" y="0.5" width="27" height="27" rx="13.5" fill="none" stroke="#D2D6DA"/></symbol>
+    <!-- Figma: _closeButton пикера (28×28) -->
+    <symbol id="i-picker-close" viewBox="0 0 28 28"><path d="M19.7917 18.875C19.9306 18.9861 20 19.1389 20 19.3333C20 19.5278 19.9306 19.6806 19.7917 19.7917C19.7361 19.875 19.6667 19.9306 19.5833 19.9583C19.5 19.9861 19.4167 20 19.3333 20C19.25 20 19.1667 19.9861 19.0833 19.9583C19 19.9306 18.9306 19.875 18.875 19.7917L14 14.9583L9.125 19.7917C9.06944 19.875 9 19.9306 8.91667 19.9583C8.83333 19.9861 8.75 20 8.66667 20C8.58333 20 8.5 19.9861 8.41667 19.9583C8.33333 19.9306 8.26389 19.875 8.20833 19.7917C8.06944 19.6806 8 19.5278 8 19.3333C8 19.1389 8.06944 18.9861 8.20833 18.875L13.0417 14L8.20833 9.125C8.06944 9.01389 8 8.86111 8 8.66667C8 8.47222 8.06944 8.31944 8.20833 8.20833C8.31944 8.06944 8.47222 8 8.66667 8C8.86111 8 9.01389 8.06944 9.125 8.20833L14 13.0417L18.875 8.20833C18.9861 8.06944 19.1389 8 19.3333 8C19.5278 8 19.6806 8.06944 19.7917 8.20833C19.9306 8.31944 20 8.47222 20 8.66667C20 8.86111 19.9306 9.01389 19.7917 9.125L14.9583 14L19.7917 18.875Z" fill="currentColor"/></symbol>
+  </defs>
+</svg>
+
+<main class="stage">
+  <div class="scene" id="scene">
+    <!-- Окно настроек (этапы 3–5) -->
+    <div class="settings-slot" id="settings"></div>
+
+    <!-- Виджет в режиме редактирования -->
+    <div class="widget-frame">
+      <div class="toolbar" aria-hidden="true">
+        <span class="toolbar__item"><i class="ico" data-i="back"></i></span>
+        <span class="toolbar__item toolbar__item--active"><i class="ico" data-i="gear"></i></span>
+        <span class="toolbar__item"><i class="ico" data-i="move"></i></span>
+        <span class="toolbar__item toolbar__item--danger"><i class="ico" data-i="trash"></i></span>
+        <span class="toolbar__item"><i class="ico" data-i="more"></i></span>
+      </div>
+
+      <!-- Виджет (этап 2) -->
+      <div class="widget-slot" id="widget"></div>
+
+      <span class="handle handle--top"></span>
+      <span class="handle handle--right"></span>
+      <span class="handle handle--bottom"></span>
+      <span class="handle handle--left"></span>
+    </div>
+  </div>
+</main>
+
+<script>
+// Коды глифов cbuc-icons — из макета (узел 11931:124320)
+const ICONS = {
+  back:  "",   // тулбар: назад
+  gear:  "",   // тулбар: настройки
+  move:  "",   // тулбар: размер/перемещение
+  trash: "",   // тулбар: удалить
+  more:  "",   // тулбар: ещё
+  reset: "",   // окно: сбросить
+  check: "",   // окно: применить
+  close: "",   // окно: закрыть; маленький ✕ у свотчей
+};
+
+// Экран «Стиль» (узел 11931:124437) и пикер (11931:124402)
+Object.assign(ICONS, {
+  formatArrow:  "",   // пикер: стрелка у «HEX» (16 px)
+  backArrow:    "",   // кнопка «назад» в шапке подэкрана (16 px)
+  radiusSwitch: "",   // скругления: переключатель «по углам» (24 px)
+});
+
+// Проставляет глиф во все <i class="ico" data-i="…"> внутри root
+function paintIcons(root = document) {
+  root.querySelectorAll(".ico[data-i]").forEach((el) => {
+    el.textContent = ICONS[el.dataset.i] ?? "";
+    el.setAttribute("aria-hidden", "true");
+  });
+}
+paintIcons();
+
+// Палитры пикеров — из Figma (узлы 11931:124382, 11931:124403, 11931:124361).
+// null — «нет цвета» (первый кружок с диагональю).
+const PALETTES = {
+  title: [null, "#000000", "#999999", "#8991a9", "#2562aa", "#5a49ab", "#cc3d00", "#c2140a", "#e6a119", "#298e3c"],
+  marker: [null, "#0085f2", "#2562aa", "#c2140a", "#f47843", "#e6a119", "#298e3c", "#5a49ab", "#cccccc", "#8991a9"],
+  // Фон: белый и 8 пастельных градиентов (−69.6°, цвет → белый)
+  background: [null, "#ffffff", "#ebf4ff", "#eeebff", "#ffeceb", "#fff8eb", "#ebffee", "#fff1eb", "#f8f8f8", "#ebfdff"],
+};
+
+// #rrggbb + непрозрачность 0–100 → rgba()
+function rgba(hex, opacity = 100) {
+  const n = parseInt(hex.slice(1), 16);
+  return `rgba(${n >> 16}, ${(n >> 8) & 255}, ${n & 255}, ${opacity / 100})`;
+}
+
+// Цвет фона из палитры → CSS-заливка, как в макете: белый — сплошной, остальные — градиент в белый
+function backgroundFill(hex, opacity = 100) {
+  if (!hex) return "transparent";
+  if (hex.toLowerCase() === "#ffffff") return rgba(hex, opacity);
+  return `linear-gradient(-69.6deg, ${rgba(hex, opacity)} 0%, ${rgba("#ffffff", opacity)} 100%)`;
+}
+
+// Пресеты стиля (этап 2+)
+const STYLES = {
+  inside:   { label: "Заголовок внутри виджета",  background: true,  title: true,  marker: true, fill: "widget" },
+  outside:  { label: "Заголовок снаружи виджета", background: true,  title: true,  marker: true, fill: "content" },
+  noTitle:  { label: "Без заголовка",             background: true,  title: false, marker: true, fill: "widget" },
+  noBg:     { label: "Виджет без фона",           background: false, title: true,  marker: true, fill: "widget" },
+};
+
+// Состояние по умолчанию; вся отрисовка — из state
+const DEFAULT_STATE = {
+  style: "inside",
+  name: "Заголовок виджета",
+  title: { on: true, color: "#000000", opacity: 100 },
+  marker: { on: true, color: "#0085f2", opacity: 100 },
+  background: { on: true, color: "#ffffff", opacity: 100, fill: "widget" },
+};
+
+// Цвет части с учётом прозрачности; null — «нет цвета»
+function partColor(key) {
+  const { color, opacity } = state[key];
+  if (!color) return null;
+  return key === "background" ? backgroundFill(color, opacity) : rgba(color, opacity);
+}
+const isOn = (key) => state[key].on && !!state[key].color;
+
+let state = structuredClone(DEFAULT_STATE);
+
+// ---------- Виджет ----------
+
+const widgetSlot = document.getElementById("widget");
+widgetSlot.innerHTML = `
+  <article class="w" id="w">
+    <svg class="w__marker" width="4" height="22" aria-hidden="true"><use href="#i-marker"/></svg>
+    <header class="w__header"><h2 class="w__title" id="w-title"></h2></header>
+    <div class="w__content">
+      <div class="w__lines" aria-label="Контент виджета">
+        <div class="w__line"></div><div class="w__line"></div><div class="w__line"></div>
+      </div>
+    </div>
+  </article>`;
+
+const w = document.getElementById("w");
+const wTitle = document.getElementById("w-title");
+
+function renderWidget() {
+  // Без заголовка «фон только на контенте» не отличим от фона на всём виджете
+  const fill = isOn("title") ? state.background.fill : "widget";
+
+  w.dataset.title = isOn("title") ? "on" : "off";
+  w.dataset.marker = isOn("marker") ? "on" : "off";
+  w.dataset.bg = isOn("background") ? "on" : "off";
+  w.dataset.fill = fill;
+
+  w.style.setProperty("--w-title", partColor("title") || "transparent");
+  w.style.setProperty("--w-marker", partColor("marker") || "transparent");
+  w.style.setProperty("--w-fill", partColor("background") || "transparent");
+
+  wTitle.textContent = state.name;
+}
+
+// Применить пресет стиля: раскладка и включённость элементов; выбранные цвета сохраняются
+function applyStyle(key) {
+  const s = STYLES[key];
+  state.style = key;
+  state.title.on = s.title;
+  state.marker.on = s.marker;
+  state.background.on = s.background;
+  state.background.fill = s.fill;
+  render();
+}
+
+function setState(mutator) {
+  mutator(state);
+  render();
+}
+
+function resetState() {
+  state = structuredClone(DEFAULT_STATE);
+  render();
+}
+
+// Стиль выводится из состояния: так ручные переключения Фон/Заголовок дают те же
+// подписи, что и варианты в макете (например, «снаружи» без заголовка остаётся «снаружи»).
+function currentStyle() {
+  const { title, background } = state;
+  if (!isOn("background")) return "noBg";
+  if (background.fill === "content") return "outside";
+  if (!isOn("title")) return "noTitle";
+  return "inside";
+}
+
+// ---------- Окно настроек ----------
+
+const settingsSlot = document.getElementById("settings");
+const toolbarGear = document.querySelector(".toolbar__item--active");
+let ui = { open: true, screen: "main", menu: null, picker: null };
+
+const arrowRight = `<svg class="icon" width="16" height="16"><use href="#i-arrow-back"/></svg>`;
+
+const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+
+// Свотч с подписью. key: background | title | marker
+function swatchField(key, label, { clearable, labelWidth }) {
+  const part = state[key];
+  const on = isOn(key);
+  const color = partColor(key);
+  return `
+    <div class="swatch-field">
+      <span class="label"${labelWidth ? ` style="width:${labelWidth}px"` : ""}>${label}</span>
+      <span class="swatch-wrap">
+        <button class="swatch" data-action="swatch" data-key="${key}"
+          ${on ? `style="--swatch-color:${color}"` : "data-off"}
+          aria-label="${label}: ${on ? "изменить цвет" : "включить"}"></button>
+        ${clearable && on ? `<button class="swatch-clear" data-action="clear" data-key="${key}" aria-label="${label}: выключить"><i class="ico ico--s" data-i="close"></i></button>` : ""}
+      </span>
+    </div>`;
+}
+
+function headHTML() {
+  return `
+    <header class="win__head">
+      <label class="win__name">
+        <input id="win-name" value="${esc(state.name)}" aria-label="Название виджета" spellcheck="false">
+      </label>
+      <div class="win__cmds">
+        <button class="btn-icon" data-action="reset" aria-label="Сбросить настройки"><i class="ico" data-i="reset"></i></button>
+        <button class="btn-apply" data-action="close" aria-label="Применить"><i class="ico ico--s" data-i="check"></i></button>
+        <button class="btn-icon" data-action="close" aria-label="Закрыть"><i class="ico" data-i="close"></i></button>
+      </div>
+    </header>`;
+}
+
+function mainScreenHTML() {
+  return `
+    ${headHTML()}
+    <div class="win__body">
+      <div class="cloud cloud--stub">Уникальные свойства виджета</div>
+
+      <div class="cloud">
+        <div class="row">
+          <span class="label">Высота</span>
+          <span class="row__grow"><button class="link" disabled>Заполнить</button></span>
+          <button class="btn-arrow" disabled aria-label="Размер">${arrowRight}</button>
+        </div>
+      </div>
+
+      <div class="cloud">
+        <button class="btn-arrow" data-action="screen" data-screen="style" aria-label="Настройки стиля">${arrowRight}</button>
+        <div class="row">
+          <span class="label">Стиль</span>
+          <button class="link" data-action="presets">${STYLES[currentStyle()].label}</button>
+        </div>
+        <div class="swatches">
+          ${swatchField("background", "Фон", { labelWidth: 28 })}
+          ${swatchField("title", "Заголовок", { clearable: true })}
+          ${swatchField("marker", "Маркер", { clearable: true, labelWidth: 52 })}
+        </div>
+      </div>
+    </div>`;
+}
+
+// Шапка подэкрана: «назад», название, ↻ ✓ ✕
+function subHeadHTML(title) {
+  const changed = JSON.stringify(state) !== JSON.stringify(DEFAULT_STATE);
+  return `
+    <header class="win__head">
+      <div class="win__title">
+        <button class="btn-back" data-action="screen" data-screen="main" aria-label="Назад"><i class="ico ico--s" data-i="backArrow"></i></button>
+        <h3>${title}</h3>
+      </div>
+      <div class="win__cmds">
+        <button class="btn-icon" data-action="reset" ${changed ? "" : "data-idle"} aria-label="Сбросить настройки"><i class="ico" data-i="reset"></i></button>
+        <button class="btn-apply" data-action="close" aria-label="Применить"><i class="ico ico--s" data-i="check"></i></button>
+        <button class="btn-icon" data-action="close" aria-label="Закрыть"><i class="ico" data-i="close"></i></button>
+      </div>
+    </header>`;
+}
+
+// Свотч без подписи (для сетки экрана «Стиль»)
+function swatchEditor(key, label, clearable) {
+  const part = state[key];
+  const on = isOn(key);
+  const color = partColor(key);
+  return `
+    <button class="swatch" data-action="swatch" data-key="${key}"
+      ${on ? `style="--swatch-color:${color}"` : "data-off"}
+      aria-label="${label}: ${on ? "изменить цвет" : "включить"}"></button>
+    ${clearable && on ? `<button class="swatch-clear" data-action="clear" data-key="${key}" aria-label="${label}: выключить"><i class="ico ico--s" data-i="close"></i></button>` : ""}`;
+}
+
+const FILL_LABELS = { widget: "на всем виджете", content: "только на контенте" };
+
+function styleScreenHTML() {
+  const { title, background } = state;
+  const bgOn = isOn("background");
+
+  // Выключенные заголовок и маркер не показываются строками — они уходят в чипсы внизу
+  // (макет: 11931:127376, 11931:128269)
+  const markerOn = isOn("marker");
+  const markerRow = `
+         <span class="label">Маркер</span>
+         <span class="editor">${swatchEditor("marker", "Маркер", true)}</span>`;
+  const titleCloud = isOn("title")
+    ? `<div class="cloud"><div class="form">
+         <span class="label label--strong">Заголовок</span>
+         <span class="editor">${swatchEditor("title", "Заголовок", true)}</span>
+         <span class="label">Шрифт</span>
+         <span><span class="text-link-static">H4 Inter · 18</span></span>
+         ${markerOn ? markerRow : ""}
+       </div></div>`
+    : markerOn
+      ? `<div class="cloud"><div class="form form--narrow">${markerRow}</div></div>`
+      : "";
+
+  const chips = [
+    !isOn("title") && `<button class="chip" data-action="title-on">Заголовок</button>`,
+    !markerOn && `<button class="chip" data-action="marker-on">Маркер</button>`,
+    isOn("title") && `<button class="chip" disabled>Иконка</button>`,
+    `<button class="chip" disabled>Границы</button>`,
+  ].filter(Boolean).join("");
+
+  const menu = ui.menu === "fill" ? `
+    <div class="menu" role="menu" aria-label="Заливка фоном">
+      <div class="menu__head">
+        <span class="menu__title">Заливка фоном</span>
+        <button class="menu__close" data-action="menu" aria-label="Закрыть"><svg><use href="#i-menu-close"/></svg></button>
+      </div>
+      ${["widget", "content"].map((f) => `
+        <button class="menu__item" role="menuitemradio" aria-checked="${background.fill === f}" data-action="fill" data-fill="${f}">
+          <svg class="menu__bullet">${background.fill === f ? `<use href="#i-bullet"/>` : ""}</svg>
+          ${f === "widget" ? "На всем виджете" : "Только на контенте"}
+        </button>`).join("")}
+    </div>` : "";
+
+  return `
+    ${subHeadHTML("Стиль")}
+    <div class="win__body">
+      ${titleCloud}
+
+      <div class="cloud">
+        <div class="form">
+          <span class="label">Фон</span>
+          <span class="editor editor--wide">
+            ${swatchEditor("background", "Фон", false)}
+            ${bgOn ? `<button class="link" data-action="menu" data-menu="fill" aria-haspopup="menu">${FILL_LABELS[background.fill]}</button>` : ""}
+          </span>
+          <span class="label">Тень</span>
+          <span class="editor"><span class="swatch-shadow"></span><span class="swatch-clear"><i class="ico ico--s" data-i="close"></i></span></span>
+          <span class="label">Скругления</span>
+          <span class="editor">
+            <span class="radius">
+              <span class="radius__field"><svg class="icon" width="12" height="12" style="color:var(--icon-label)"><use href="#i-radius"/></svg>8</span>
+              <i class="ico radius__switch" data-i="radiusSwitch"></i>
+            </span>
+            <span class="swatch-clear"><i class="ico ico--s" data-i="close"></i></span>
+          </span>
+        </div>
+      </div>
+
+      <div class="chips">${chips}</div>
+    </div>
+    ${menu}`;
+}
+
+const SCREENS = { main: mainScreenHTML, style: styleScreenHTML };
+
+// ---------- Пикер цвета ----------
+
+const PICKER_TITLES = { title: "Текст", marker: "Маркер", background: "Фон" };
+// Сдвиг пикера относительно свотча — как в макете (11931:124361 / 124382 / 124403)
+const PICKER_OFFSET = { background: [-19, -68], title: [-16, -68], marker: [-30, -68] };
+
+// Скрытый нативный выбор цвета для «Другой цвет»; живёт вне перерисовываемого окна
+const nativeColor = Object.assign(document.createElement("input"), { type: "color", tabIndex: -1 });
+nativeColor.style.cssText = "position:absolute;width:0;height:0;opacity:0;pointer-events:none";
+nativeColor.setAttribute("aria-hidden", "true");
+document.body.append(nativeColor);
+nativeColor.addEventListener("input", () => ui.picker && pickColor(ui.picker.key, nativeColor.value));
+
+function pickerHTML() {
+  const { key, x, y } = ui.picker;
+  const part = state[key];
+  const def = DEFAULT_STATE[key];
+  const atDefault = part.color === def.color && part.opacity === def.opacity;
+  const hex = (part.color || "").replace("#", "").toUpperCase();
+  const current = partColor(key);
+  const isBg = key === "background";
+
+  return `
+    <div class="picker" style="left:${x}px;top:${y}px" role="dialog" aria-label="${PICKER_TITLES[key]}">
+      <header class="picker__head">
+        <span class="picker__caption">${PICKER_TITLES[key]}</span>
+        <span class="picker__mid">${isBg ? `
+          <span class="tumbler">
+            <button class="tumbler__item" aria-pressed="true">Цвет</button>
+            <button class="tumbler__item" aria-pressed="false" disabled>Картинка</button>
+          </span>` : ""}</span>
+        <span class="picker__cmds">
+          <span class="picker__tools">
+            <button class="picker__tool" disabled aria-label="Пипетка"><svg class="icon" width="16" height="16"><use href="#i-pipette"/></svg></button>
+            <button class="picker__tool" data-action="picker-reset" ${atDefault ? "data-idle" : ""} aria-label="Сбросить цвет"><i class="ico" data-i="reset"></i></button>
+          </span>
+          <button class="btn-apply" data-action="picker-apply" aria-label="Применить"><i class="ico ico--s" data-i="check"></i></button>
+        </span>
+        <button class="picker__close" data-action="picker-cancel" aria-label="Закрыть"><svg><use href="#i-picker-close"/></svg></button>
+      </header>
+      <div class="picker__body">
+        <div class="pcloud picker__code">
+          <span class="picker__current" ${current ? `style="--current:${current}"` : "data-none"}></span>
+          <span class="picker__fields">
+            <span class="ufield ufield--format">HEX<i class="ico ico--s" data-i="formatArrow"></i></span>
+            <span class="picker__alpha">
+              <label class="ufield ufield--hex"><input id="picker-hex" value="${hex ? "#" + hex : ""}" maxlength="7" spellcheck="false" aria-label="Код цвета"></label>
+              <label class="ufield ufield--alpha"><input id="picker-alpha" value="${part.opacity}" inputmode="numeric" maxlength="3" aria-label="Непрозрачность, %"></label>
+              <span class="pct">%</span>
+            </span>
+          </span>
+        </div>
+        <div class="pcloud pcloud--colors">
+          <div class="palette">
+            ${PALETTES[key].map((c) => c
+              ? `<button class="palette__item" style="--c:${isBg ? backgroundFill(c) : c}" data-action="pick" data-color="${c}" aria-label="${c}"></button>`
+              : `<button class="palette__item" data-none data-action="pick" data-color="" aria-label="Нет цвета"><svg width="28" height="28"><use href="#i-no-color"/></svg></button>`
+            ).join("")}
+          </div>
+          <div class="picker__links"><div>
+            <button class="plink" data-action="picker-native">Другой цвет</button>
+            ${isBg ? `<button class="plink" disabled>Градиент</button><button class="plink" disabled>Текстура</button>` : ""}
+          </div></div>
+        </div>
+      </div>
+    </div>`;
+}
+
+// Выбор цвета применяется к виджету сразу; null — «нет цвета»
+function pickColor(key, color) {
+  setState((s) => {
+    s[key].color = color || null;
+    if (color) s[key].on = true;
+  });
+}
+
+function openPicker(el) {
+  const key = el.dataset.key;
+  const sw = el.getBoundingClientRect();
+  const slot = settingsSlot.getBoundingClientRect();
+  const [dx, dy] = PICKER_OFFSET[key];
+  ui.menu = null;
+  ui.picker = {
+    key,
+    x: Math.round(sw.left - slot.left + dx),
+    y: Math.round(sw.top - slot.top + dy),
+    before: structuredClone(state[key]),   // для отмены по ✕
+  };
+  render();
+}
+
+function renderSettings() {
+  toolbarGear.classList.toggle("toolbar__item--active", ui.open);
+  if (!ui.open) { settingsSlot.innerHTML = ""; return; }
+
+  // Не пересобираем поле названия, пока в нём печатают — иначе теряется курсор
+  const focused = document.activeElement?.id === "win-name";
+  if (focused && settingsSlot.dataset.screen === ui.screen) {
+    // Обновляем всё, кроме шапки
+    const tmp = document.createElement("div");
+    tmp.innerHTML = SCREENS[ui.screen]();
+    settingsSlot.querySelector(".win__body").replaceWith(tmp.querySelector(".win__body"));
+  } else {
+    settingsSlot.innerHTML = `<section class="win" aria-label="Настройки виджета">${SCREENS[ui.screen]()}</section>`
+      + (ui.picker ? pickerHTML() : "");
+    settingsSlot.dataset.screen = ui.screen;
+  }
+  paintIcons(settingsSlot);
+}
+
+// Действия окна
+const ACTIONS = {
+  reset: () => { ui.picker = null; resetState(); },
+  close: () => { ui = { open: false, screen: "main", menu: null, picker: null }; render(); },
+  screen: (el) => { ui.screen = el.dataset.screen; ui.menu = null; ui.picker = null; render(); },
+  presets: () => {},                                              // попап пресетов — этап 5
+  menu: (el) => { ui.menu = el.dataset.menu || null; render(); },
+  fill: (el) => { ui.menu = null; setState((s) => { s.background.fill = el.dataset.fill; }); },
+  "title-on": () => setState((s) => { s.title.on = true; s.title.color ||= DEFAULT_STATE.title.color; }),
+  "marker-on": () => setState((s) => { s.marker.on = true; s.marker.color ||= DEFAULT_STATE.marker.color; }),
+  clear: (el) => { ui.picker = null; setState((s) => { s[el.dataset.key].on = false; }); },
+  swatch: (el) => {
+    const key = el.dataset.key;
+    if (!isOn(key)) {
+      // Включить обратно; если цвет был снят, вернуть цвет по умолчанию
+      ui.picker = null;
+      setState((s) => {
+        s[key].on = true;
+        s[key].color ||= DEFAULT_STATE[key].color;
+      });
+    } else if (ui.picker?.key === key) {
+      ui.picker = null; render();
+    } else {
+      openPicker(el);
+    }
+  },
+
+  // Пикер
+  pick: (el) => pickColor(ui.picker.key, el.dataset.color),
+  "picker-apply": () => { ui.picker = null; render(); },
+  "picker-cancel": () => {
+    const { key, before } = ui.picker;
+    ui.picker = null;
+    setState((s) => { s[key] = before; });
+  },
+  "picker-reset": () => {
+    const key = ui.picker.key;
+    setState((s) => {
+      s[key].color = DEFAULT_STATE[key].color;
+      s[key].opacity = DEFAULT_STATE[key].opacity;
+      s[key].on = true;
+    });
+  },
+  "picker-native": () => {
+    nativeColor.value = state[ui.picker.key].color || "#000000";
+    nativeColor.showPicker ? nativeColor.showPicker() : nativeColor.click();
+  },
+};
+
+// Поля HEX и прозрачности: применяем по Enter или при уходе с поля
+function commitPickerField(input) {
+  const key = ui.picker?.key;
+  if (!key) return;
+  if (input.id === "picker-hex") {
+    let v = input.value.trim().replace(/^#?/, "#").toLowerCase();
+    if (/^#[0-9a-f]{3}$/.test(v)) v = "#" + [...v.slice(1)].map((c) => c + c).join("");
+    if (/^#[0-9a-f]{6}$/.test(v)) pickColor(key, v);
+    else render();   // неверный код — вернуть прежнее значение
+  }
+  if (input.id === "picker-alpha") {
+    const n = Math.round(Number(input.value));
+    if (Number.isFinite(n)) setState((s) => { s[key].opacity = Math.min(100, Math.max(0, n)); });
+    else render();
+  }
+}
+settingsSlot.addEventListener("change", (e) => commitPickerField(e.target));
+settingsSlot.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && e.target.closest(".picker")) e.target.blur();
+});
+
+// Esc закрывает верхний попап
+document.addEventListener("keydown", (e) => {
+  if (e.key !== "Escape") return;
+  if (ui.picker) ACTIONS["picker-cancel"]();
+  else if (ui.menu) { ui.menu = null; render(); }
+});
+
+// Клик мимо открытого пикера подтверждает выбор и закрывает его
+document.addEventListener("click", (e) => {
+  if (ui.picker && !e.target.closest(".picker, .swatch")) { ui.picker = null; render(); }
+}, true);
+
+// Клик мимо открытого меню закрывает его
+document.addEventListener("click", (e) => {
+  if (ui.menu && !e.target.closest(".menu, [data-menu]")) { ui.menu = null; render(); }
+}, true);
+
+settingsSlot.addEventListener("click", (e) => {
+  const el = e.target.closest("[data-action]");
+  if (!el || el.disabled) return;
+  if (el.dataset.action === "screen" && !SCREENS[el.dataset.screen]) return;
+  ACTIONS[el.dataset.action]?.(el);
+});
+
+settingsSlot.addEventListener("input", (e) => {
+  if (e.target.id === "win-name") setState((s) => { s.name = e.target.value; });
+});
+
+// Окно закрыто — клик по виджету открывает его снова
+document.querySelector(".widget-frame").addEventListener("click", () => {
+  if (!ui.open) { ui = { open: true, screen: "main", menu: null, picker: null }; render(); }
+});
+
+function render() {
+  renderWidget();
+  renderSettings();
+}
+
+render();
+</script>
