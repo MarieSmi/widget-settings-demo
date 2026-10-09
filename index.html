@@ -169,8 +169,16 @@ button:focus-visible { outline: 2px solid var(--border-info); outline-offset: 2p
   position: relative;
   width: var(--widget-w);
   height: var(--widget-h);
+}
+/* Рамка выделения поверх виджета (как в макете: виджет 557×280 целиком, рамка — сверху) */
+.widget-frame::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
   border: 1px solid var(--border-info);
   border-radius: var(--r-3xs);
+  pointer-events: none;
 }
 
 /* Слот под сам виджет — наполняется на этапе 2 */
@@ -182,6 +190,7 @@ button:focus-visible { outline: 2px solid var(--border-info); outline-offset: 2p
 }
 
 .handle {
+  z-index: 2;
   position: absolute;
   width: 8px;
   height: 8px;
@@ -203,7 +212,6 @@ button:focus-visible { outline: 2px solid var(--border-info); outline-offset: 2p
   top: -42px;
   display: flex;
   background: var(--toolbar-bg);
-  border: 1px solid var(--toolbar-border);
   border-radius: var(--r-xs);
   filter: drop-shadow(var(--shadow-toolbar));
   overflow: hidden;
@@ -214,6 +222,14 @@ button:focus-visible { outline: 2px solid var(--border-info); outline-offset: 2p
   width: 36px;
   padding: 4px 6px;
   color: var(--icon);
+}
+/* Обводка поверх кнопок: тулбар 180×32, как в макете */
+.toolbar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px var(--toolbar-border);
 }
 .toolbar__item--active {
   background: var(--toolbar-bg-active);
@@ -231,12 +247,14 @@ button:focus-visible { outline: 2px solid var(--border-info); outline-offset: 2p
   --w-fill: var(--bg);
   --w-title: var(--text);
   --w-marker: var(--brand);
+  --pad-h: 12px;            /* внутренние отступы — экран «Размер» */
+  --pad-v: 12px;
   position: relative;
   flex: 1;
   display: flex;
   flex-direction: column;
   gap: 16px;
-  padding: 0 var(--sp-m) var(--sp-m);
+  padding: 0 var(--pad-h) var(--pad-v);
   background: var(--w-fill);
   border-radius: var(--r-s);
   box-shadow: var(--shadow-widget);
@@ -247,8 +265,8 @@ button:focus-visible { outline: 2px solid var(--border-info); outline-offset: 2p
   display: flex;
   align-items: center;
   height: 24px;
-  margin-top: var(--sp-m);
-  padding-right: var(--sp-m);
+  margin-top: var(--pad-v);
+  padding-right: var(--pad-h);
   flex: none;
 }
 .w__title {
@@ -266,7 +284,7 @@ button:focus-visible { outline: 2px solid var(--border-info); outline-offset: 2p
 .w__marker {
   position: absolute;
   left: 0;
-  top: 13px;
+  top: calc(var(--pad-v) + 1px);
   width: 4px;
   height: 22px;
   color: var(--w-marker);
@@ -296,7 +314,7 @@ button:focus-visible { outline: 2px solid var(--border-info); outline-offset: 2p
 
 /* Заголовок выключен: контент поднимается к верхнему отступу */
 .w[data-title="off"] .w__header { display: none; }
-.w[data-title="off"] .w__content { padding-top: var(--sp-m); }
+.w[data-title="off"] .w__content { padding-top: calc(var(--pad-v) + 2px); }   /* contentDashWidget сдвинут на 2 px */
 
 .w[data-marker="off"] .w__marker { display: none; }
 
@@ -308,9 +326,9 @@ button:focus-visible { outline: 2px solid var(--border-info); outline-offset: 2p
   box-shadow: none;
   overflow: visible;
 }
-.w[data-fill="content"] .w__header { padding-left: var(--sp-m); }
+.w[data-fill="content"] .w__header { padding-left: var(--pad-h); }
 .w[data-fill="content"] .w__content {
-  padding: 14px var(--sp-m) var(--sp-m);
+  padding: calc(var(--pad-v) + 2px) var(--pad-h) var(--pad-v);
   background: var(--w-fill);
   border-radius: var(--r-s);
   box-shadow: var(--shadow-widget);
@@ -650,6 +668,77 @@ button.swatch-clear:hover { color: var(--icon-secondary); }
 .menu__item:hover { background: var(--bg-hover); }
 .menu__bullet { width: 12px; height: 12px; flex: none; color: var(--marker-color, #cc3d00); }
 
+/* ---------- Экран «Размер» (Figma 11931:126178) ---------- */
+
+.size-form { display: grid; grid-template-columns: 54px auto; gap: var(--sp-s); align-items: center; }
+.size-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 130px;
+  height: 24px;
+  border-bottom: 1px solid var(--border-unaccented);
+}
+.size-field:focus-within { border-bottom-color: var(--text-link); }
+.size-field input,
+.pad-field input {
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  letter-spacing: inherit;
+  color: var(--text);
+  outline: none;
+}
+.size-field input::placeholder { color: rgba(137, 145, 169, 0.6); }   /* placeholder-color_inputtext */
+.size-fill { color: var(--text-label); white-space: nowrap; }
+.size-fill:not([disabled]):hover { color: var(--text-link); }
+.size-fill[disabled] { cursor: default; }
+
+.cloud--pads { gap: var(--sp-2xs); }
+.cloud__title { display: flex; align-items: center; height: 24px; font-size: var(--fs-l); font-weight: var(--fw-bold); }
+.pads { display: flex; flex-direction: column; gap: var(--sp-s); }
+.pad-row { position: relative; display: flex; align-items: center; gap: var(--sp-s); height: 24px; }
+.pad-row--outer { gap: 28px; }      /* поля обоих рядов на одной вертикали, как в макете */
+.pad-fields { display: flex; gap: var(--sp-s); }
+.pad-field {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-xs);
+  width: 56px;
+  height: 24px;
+  border-bottom: 1px solid var(--border-unaccented);
+  color: var(--icon-label);
+}
+.pad-field:focus-within { border-bottom-color: var(--text-link); }
+.pad-row .ico { position: absolute; right: 0; top: 0; font-size: 20px; color: var(--icon-secondary); }  /* icon-size_st = 20 */
+
+.toggle-row { display: flex; align-items: center; gap: var(--sp-s); height: 24px; }
+.switch { display: flex; align-items: center; height: 24px; }
+.switch__track {
+  position: relative;
+  width: 24px;
+  height: 16px;
+  border-radius: 8px;
+  background: var(--border-unaccented);      /* выключенного состояния в макете нет */
+}
+.switch__track::after {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--bg);
+}
+.switch[aria-checked="true"] .switch__track { background: #f6733c; }
+.switch[aria-checked="true"]:hover .switch__track { background: #e4662f; }
+.switch[aria-checked="true"] .switch__track::after { left: 10px; }
+
 /* ---------- Попап выбора стиля (Figma 11931:124340) ----------
    Две колонки карточек-превью 240×132; позиция относительно окна — (44, 183). */
 
@@ -669,12 +758,15 @@ button.swatch-clear:hover { color: var(--icon-secondary); }
   filter: drop-shadow(0 4px 9px rgba(0, 0, 0, 0.12));
 }
 .preset {
+  display: block;
+  align-self: start;
   padding: var(--sp-s);
   border-radius: var(--r-s);
   text-align: left;
 }
 /* Превью 224×116: каждый стиль показывает свою подложку */
 .preset__shot {
+  display: block;
   position: relative;
   width: 224px;
   height: 116px;
@@ -690,6 +782,7 @@ button.swatch-clear:hover { color: var(--icon-secondary); }
   box-shadow: var(--shadow-widget);
 }
 .preset__title {
+  display: block;
   position: absolute;
   left: 10px;
   top: 8px;
@@ -698,6 +791,7 @@ button.swatch-clear:hover { color: var(--icon-secondary); }
   white-space: nowrap;
 }
 .preset__text {
+  display: block;
   position: absolute;
   left: 10px;
   width: 198px;
@@ -705,6 +799,7 @@ button.swatch-clear:hover { color: var(--icon-secondary); }
   line-height: normal;
 }
 .preset__marker {
+  display: block;
   position: absolute;
   left: 0;
   top: 10px;
@@ -902,6 +997,9 @@ button.swatch-clear:hover { color: var(--icon-secondary); }
     <!-- Figma: маркер выбранного пункта меню (12×12) -->
     <symbol id="i-bullet" viewBox="0 0 12 12"><circle cx="6" cy="6" r="3" fill="currentColor"/></symbol>
 
+    <!-- Figma: отступ по горизонтали / вертикали (12×12) -->
+    <symbol id="i-pad-h" viewBox="0 0 12 12"><g fill="currentColor"><rect x="0" y="1" width="1" height="10" rx=".5"/><rect x="11" y="1" width="1" height="10" rx=".5"/></g><rect x="3.5" y="3.5" width="5" height="5" rx="1.5" fill="none" stroke="currentColor"/></symbol>
+    <symbol id="i-pad-v" viewBox="0 0 12 12"><g fill="currentColor"><rect x="1" y="0" width="10" height="1" rx=".5"/><rect x="1" y="11" width="10" height="1" rx=".5"/></g><rect x="3.5" y="3.5" width="5" height="5" rx="1.5" fill="none" stroke="currentColor"/></symbol>
     <!-- Figma: крестик попапа выбора стиля (12×12) -->
     <symbol id="i-popup-close" viewBox="0 0 12 12"><path d="M11.7917 10.875C11.9306 10.9861 12 11.1389 12 11.3333C12 11.5278 11.9306 11.6806 11.7917 11.7917C11.7361 11.875 11.6667 11.9306 11.5833 11.9583C11.5 11.9861 11.4167 12 11.3333 12C11.25 12 11.1667 11.9861 11.0833 11.9583C11 11.9306 10.9306 11.875 10.875 11.7917L6 6.95833L1.125 11.7917C1.06944 11.875 1 11.9306 0.916667 11.9583C0.833333 11.9861 0.75 12 0.666667 12C0.583333 12 0.5 11.9861 0.416667 11.9583C0.333333 11.9306 0.263889 11.875 0.208333 11.7917C0.0694444 11.6806 0 11.5278 0 11.3333C0 11.1389 0.0694444 10.9861 0.208333 10.875L5.04167 6L0.208333 1.125C0.0694444 1.01389 0 0.861111 0 0.666667C0 0.472222 0.0694444 0.319444 0.208333 0.208333C0.319444 0.0694444 0.472222 0 0.666667 0C0.861111 0 1.01389 0.0694444 1.125 0.208333L6 5.04167L10.875 0.208333C10.9861 0.0694444 11.1389 0 11.3333 0C11.5278 0 11.6806 0.0694444 11.7917 0.208333C11.9306 0.319444 12 0.472222 12 0.666667C12 0.861111 11.9306 1.01389 11.7917 1.125L6.95833 6L11.7917 10.875Z" fill="currentColor"/></symbol>
     <!-- Figma: eyedropper-alt (16×16) -->
@@ -955,6 +1053,7 @@ const ICONS = {
 // Экран «Стиль» (узел 11931:124437) и пикер (11931:124402)
 Object.assign(ICONS, {
   formatArrow:  "",   // пикер: стрелка у «HEX» (16 px)
+  padSides:     "",   // «Размер»: переключатель отступов по сторонам (20 px)
   backArrow:    "",   // кнопка «назад» в шапке подэкрана (16 px)
   radiusSwitch: "",   // скругления: переключатель «по углам» (24 px)
 });
@@ -1005,7 +1104,13 @@ const DEFAULT_STATE = {
   title: { on: true, color: "#000000", opacity: 100 },
   marker: { on: true, color: "#0085f2", opacity: 100 },
   background: { on: true, color: "#ffffff", opacity: 100, fill: "widget" },
+  // Экран «Размер»: null — «заполнить» (ячейка дашборда 557×280)
+  size: { w: null, h: null },
+  padding: { h: 12, v: 12 },      // внутренние отступы
+  margin: { h: 0, v: 0 },         // внешние отступы
+  hideEmpty: true,                // «Скрывать без данных»
 };
+const CELL = { w: 557, h: 280 };
 
 // Цвет части с учётом прозрачности; null — «нет цвета»
 function partColor(key) {
@@ -1032,6 +1137,7 @@ widgetSlot.innerHTML = `
   </article>`;
 
 const w = document.getElementById("w");
+const widgetFrame = document.querySelector(".widget-frame");
 const wTitle = document.getElementById("w-title");
 
 function renderWidget() {
@@ -1048,6 +1154,14 @@ function renderWidget() {
   w.style.setProperty("--w-fill", partColor("background") || "transparent");
 
   wTitle.textContent = state.name;
+
+  // Размер и отступы: рамка выделения повторяет размер виджета, внешние отступы — внутри неё
+  const { size, padding, margin } = state;
+  widgetFrame.style.width = (size.w ?? CELL.w) + "px";
+  widgetFrame.style.height = (size.h ?? CELL.h) + "px";
+  widgetSlot.style.inset = `${margin.v}px ${margin.h}px`;
+  w.style.setProperty("--pad-h", padding.h + "px");
+  w.style.setProperty("--pad-v", padding.v + "px");
 }
 
 // Применить пресет стиля: раскладка и включённость элементов; выбранные цвета сохраняются
@@ -1131,8 +1245,8 @@ function mainScreenHTML() {
       <div class="cloud">
         <div class="row">
           <span class="label">Высота</span>
-          <span class="row__grow"><button class="link" disabled>Заполнить</button></span>
-          <button class="btn-arrow" disabled aria-label="Размер">${arrowRight}</button>
+          <span class="row__grow"><button class="link" data-action="screen" data-screen="size">${state.size.h == null ? "Заполнить" : state.size.h + " px"}</button></span>
+          <button class="btn-arrow" data-action="screen" data-screen="size" aria-label="Размер">${arrowRight}</button>
         </div>
       </div>
 
@@ -1254,7 +1368,44 @@ function styleScreenHTML() {
     ${menu}`;
 }
 
-const SCREENS = { main: mainScreenHTML, style: styleScreenHTML };
+// Экран «Размер» (11931:126178)
+function sizeScreenHTML() {
+  const { size, padding, margin, hideEmpty } = state;
+  const sizeField = (k, label) => `
+    <span class="label">${label}</span>
+    <label class="size-field">
+      <input id="size-${k}" data-field="size.${k}" value="${size[k] ?? ""}" placeholder="${CELL[k]}" inputmode="numeric" maxlength="4" aria-label="${label}, px">
+      <button class="size-fill" data-action="size-fill" data-key="${k}" ${size[k] == null ? "disabled" : ""}>заполнить</button>
+    </label>`;
+  const padRow = (group, label, cls) => `
+    <div class="pad-row ${cls}">
+      <span class="label">${label}</span>
+      <span class="pad-fields">
+        <label class="pad-field"><svg class="icon" width="12" height="12"><use href="#i-pad-h"/></svg><input data-field="${group}.h" value="${state[group].h}" inputmode="numeric" maxlength="3" aria-label="${label} по горизонтали"></label>
+        <label class="pad-field"><svg class="icon" width="12" height="12"><use href="#i-pad-v"/></svg><input data-field="${group}.v" value="${state[group].v}" inputmode="numeric" maxlength="3" aria-label="${label} по вертикали"></label>
+      </span>
+      <i class="ico" data-i="padSides"></i>
+    </div>`;
+  return `
+    ${subHeadHTML("Размер")}
+    <div class="win__body">
+      <div class="cloud">
+        <div class="size-form">${sizeField("w", "Ширина")}${sizeField("h", "Высота")}</div>
+      </div>
+      <div class="cloud cloud--pads">
+        <span class="cloud__title">Отступы</span>
+        <div class="pads">${padRow("padding", "Внутренние", "")}${padRow("margin", "Внешние", "pad-row--outer")}</div>
+      </div>
+      <div class="cloud">
+        <div class="toggle-row">
+          <span class="label">Скрывать без данных</span>
+          <button class="switch" role="switch" aria-checked="${hideEmpty}" data-action="hide-empty" aria-label="Скрывать без данных"><span class="switch__track"></span></button>
+        </div>
+      </div>
+    </div>`;
+}
+
+const SCREENS = { main: mainScreenHTML, style: styleScreenHTML, size: sizeScreenHTML };
 
 // ---------- Попап выбора стиля ----------
 
@@ -1422,6 +1573,10 @@ const ACTIONS = {
     }
   },
 
+  // Размер
+  "size-fill": (el) => setState((s) => { s.size[el.dataset.key] = null; }),
+  "hide-empty": () => setState((s) => { s.hideEmpty = !s.hideEmpty; }),
+
   // Пикер
   pick: (el) => pickColor(ui.picker.key, el.dataset.color),
   "picker-apply": () => { ui.picker = null; render(); },
@@ -1460,9 +1615,24 @@ function commitPickerField(input) {
     else render();
   }
 }
-settingsSlot.addEventListener("change", (e) => commitPickerField(e.target));
+// Поля экрана «Размер»: data-field="size.w" | "padding.h" | … ; пустая ширина/высота — «заполнить»
+const FIELD_LIMITS = { size: [40, 2000], padding: [0, 100], margin: [0, 100] };
+function commitSizeField(input) {
+  const [group, key] = input.dataset.field.split(".");
+  const raw = input.value.trim();
+  if (group === "size" && raw === "") return setState((s) => { s.size[key] = null; });
+  const n = Math.round(Number(raw));
+  if (!Number.isFinite(n) || raw === "") return render();   // неверное значение — вернуть прежнее
+  const [min, max] = FIELD_LIMITS[group];
+  setState((s) => { s[group][key] = Math.min(max, Math.max(min, n)); });
+}
+
+settingsSlot.addEventListener("change", (e) => {
+  if (e.target.dataset.field) commitSizeField(e.target);
+  else commitPickerField(e.target);
+});
 settingsSlot.addEventListener("keydown", (e) => {
-  if (e.key === "Enter" && e.target.closest(".picker")) e.target.blur();
+  if (e.key === "Enter" && (e.target.closest(".picker") || e.target.dataset.field)) e.target.blur();
 });
 
 // Esc закрывает верхний попап
