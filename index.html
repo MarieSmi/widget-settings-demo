@@ -1620,9 +1620,9 @@ function borderRowHTML() {
   return `
     <span class="label">Границы</span>
     <span class="row-editor" style="padding-right:28px;gap:8px">
-      <span class="editor">${swatchEditor("border", "Границы", true)}</span>
+      <span class="editor">${swatchEditor("border", "Границы", false)}</span>
       <button class="line-btn" data-action="line-menu" aria-label="Тип линии"><span class="line-icon ${b.style === "dashed" ? "line-icon--dashed" : ""}"></span></button>
-      <span class="editor" style="gap:4px">
+      <span class="editor">
         ${b.split ? sideBox("border", "Граница") : `<label class="num-field num-field--s">${num("border.all", b.top, "", "Толщина границы")}</label>`}
         <button class="swatch-clear" data-action="toggle" data-key="border" aria-label="Границы: убрать"><i class="ico ico--s" data-i="close"></i></button>
       </span>
