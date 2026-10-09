@@ -286,6 +286,16 @@ button:focus-visible { outline: 2px solid var(--border-info); outline-offset: 2p
   text-overflow: ellipsis;
 }
 
+/* Иконка перед заголовком: глиф cbuc-icons24, зазор до текста 4 px (макет 10501:51036) */
+.w__header { gap: 4px; }
+.w__icon {
+  flex: none;
+  font-family: "cbuc-icons24";
+  font-style: normal;
+  line-height: 1;
+  letter-spacing: 0;
+}
+
 /* Маркер — у левого края карточки, на уровне первой строки */
 .w__marker {
   position: absolute;
@@ -859,6 +869,97 @@ button.size-fill:not([disabled]):hover { color: var(--text-link); }
 .line-menu button { display: flex; align-items: center; justify-content: center; width: 48px; min-height: 32px; border-radius: var(--r-l); color: var(--icon-secondary); }
 .line-menu button:hover, .line-menu button[aria-checked="true"] { background: var(--bg-hover); }
 
+/* Строка «Иконка» (Figma 10501:51036) */
+.icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  flex: none;
+  border-radius: var(--r-2xs);
+  background: var(--bg-pale);
+}
+.icon-btn .ico { width: 24px; height: 24px; font-size: 16px; }
+.icon-btn:hover { background: rgba(51, 51, 51, 0.1); }
+.icon-size { width: 48px; }
+
+/* Окно выбора иконки (Figma 10506:60113): 376×340 */
+.icon-picker {
+  position: absolute;
+  z-index: 2;
+  width: 376px;
+  height: 340px;
+  display: flex;
+  flex-direction: column;
+  background: #f8f8f8;
+  border-radius: var(--r-s);
+  box-shadow: 0 0 18px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+}
+.ip-head { display: flex; align-items: center; height: 48px; padding: 0 6px 0 16px; flex: none; }
+.ip-color { margin-right: 8px; }
+.ip-search {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 4px 0 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--icon-secondary);
+}
+.ip-search:focus-within { border-color: var(--border-unaccented); }
+.ip-search input { flex: 1; min-width: 0; border: 0; padding: 0; background: none; font: inherit; letter-spacing: inherit; color: var(--text); outline: none; }
+.ip-search input::placeholder { color: rgba(137, 145, 169, 0.6); }
+.ip-search .ico { width: 24px; height: 24px; }
+.ip-close { display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; margin-left: 6px; color: var(--icon-label); }
+.ip-bottom { flex: 1; min-height: 0; display: flex; padding: 0 0 4px 4px; }
+.ip-scroll {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+  padding: 0 8px;
+  background: var(--bg);
+  border-radius: var(--r-s);
+  scrollbar-width: thin;
+}
+.ip-group { padding: 6px 0 4px; }
+.ip-title { padding: 0 0 4px 2px; color: #999; }      /* Text/unaccented_text-color */
+.ip-row { display: flex; flex-wrap: wrap; }
+.ip-icon {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-2xs);
+  color: var(--icon-secondary);
+}
+.ip-icon i { font-family: "cbuc-icons24"; font-size: 24px; font-style: normal; line-height: 32px; }
+.ip-icon:hover { background: var(--bg-hover); }
+.ip-icon.is-current { background: var(--toolbar-bg); color: var(--icon-info); }
+.ip-icon--none { color: var(--icon-unaccented); }
+.ip-empty { padding: 16px 2px; color: var(--text-label); }
+.ip-rail { width: 36px; flex: none; display: flex; flex-direction: column; gap: 4px; padding: 4px; }
+.ip-rail__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex: none;
+  border-radius: var(--r-pill);
+  font-family: "cbuc-icons";
+  font-size: 16px;
+  line-height: 1;
+  letter-spacing: 0;
+  color: var(--icon-secondary);
+}
+.ip-rail__btn:not([disabled]):hover { background: var(--bg-hover); }
+.ip-rail__btn[disabled] { cursor: default; }
+.ip-rail__btn.is-active { background: var(--bg-pale); color: #cc3d00; }
+
 /* Меню «Шрифт» — стили заголовка (Figma 10404:99461) */
 .font-menu {
   position: absolute;
@@ -1312,6 +1413,8 @@ const PALETTES = {
   background: [null, "#ffffff", "#ebf4ff", "#eeebff", "#ffeceb", "#fff8eb", "#ebffee", "#fff1eb", "#f8f8f8", "#ebfdff"],
   // Границы: палитра текста + цвет из PropertyGrid (#A39C97)
   border: [null, "#a39c97", "#000000", "#999999", "#8991a9", "#2562aa", "#5a49ab", "#c2140a", "#e6a119", "#298e3c"],
+  // Иконка: палитра текста, по умолчанию #656C87 (icon/secondary)
+  icon: [null, "#656c87", "#000000", "#999999", "#8991a9", "#2562aa", "#5a49ab", "#cc3d00", "#c2140a", "#298e3c"],
 };
 
 // #rrggbb + непрозрачность 0–100 → rgba()
@@ -1352,6 +1455,8 @@ const DEFAULT_STATE = {
   margin:  { top: 0, right: 0, bottom: 0, left: 0, split: false },       // внешние
   hideEmpty: true,                // «Скрывать без данных»
   font: "h4",                     // стиль заголовка: h1…h6 (Figma 10404:99461)
+  // Иконка заголовка (Figma 10501:47174): глиф cbuc-icons24, размер, цвет
+  icon: { on: false, glyph: null, size: 24, color: "#656c87", opacity: 100 },
   // Редакторы оформления (Figma PropertyGrid, раздел «Оформление» 23882:236259).
   // on: false — строка убрана в чипсы на экране «Стиль».
   shadow: { on: true, color: "#000000", opacity: 6, x: 0, y: 0, blur: 8, spread: 0 },   // по умолчанию shadow_c
@@ -1368,6 +1473,23 @@ function partColor(key) {
   return key === "background" ? backgroundFill(color, opacity) : rgba(color, opacity);
 }
 const isOn = (key) => state[key].on && !!state[key].color;
+
+// Окно выбора иконки (Figma 10506:60113): коды глифов cbuc-icons24 по разделам, как в макете.
+// Первый «недавний» — «без иконки».
+const g = (...codes) => codes.map((c) => String.fromCharCode(c));
+const range = (a, b) => Array.from({ length: b - a + 1 }, (_, i) => a + i);
+const ICON_SECTIONS = [
+  { key: "people", title: "Люди", rail: 0xE931,
+    icons: g(0xE9A7, 0xE92D, 0xE92E, 0xE92F, 0xE926, ...range(0xE6A9, 0xE6BE), 0xEB6F) },
+  { key: "status", title: "Статусы пользователя", rail: 0xE940,
+    icons: g(0xEB3E, 0xEAAA, 0xEA1C, 0xEA1F, 0xE96A, 0xE949, 0xE94A, 0xE94B, ...range(0xE931, 0xE945), 0xE67E, 0xE618, 0xE620) },
+  { key: "finance", title: "Финансы", rail: 0xE641,
+    icons: g(0xEAF2, 0xEAD9, ...range(0xEA9E, 0xEAA6), 0xEAB2, 0xEA93, 0xEA38, 0xEA35, 0xEA06, 0xEA0D, 0xE9CD, 0xE9BB,
+             0xE98E, 0xE981, 0xE95B, 0xE6D6, 0xE6D7, 0xE6A3, 0xE695, 0xE696, 0xE641, 0xE66F) },
+];
+// Панель категорий: «недавние» и разделы; остальные кнопки из макета — без своего раздела
+const ICON_RAIL_EXTRA = g(0xE637, 0xE735, 0xE9E2, 0xE91B, 0xE9D9);
+let recentIcons = g(0xE758, 0xE90F, 0xE61F, 0xEAF8, 0xEA38, 0xE95B, 0xEAA0, 0xE9B1);
 
 // Стили заголовка — меню «Шрифт» (Figma 10404:99461), Inter Semi Bold
 const FONTS = {
@@ -1387,7 +1509,7 @@ const widgetSlot = document.getElementById("widget");
 widgetSlot.innerHTML = `
   <article class="w" id="w">
     <svg class="w__marker" width="4" height="22" aria-hidden="true"><use href="#i-marker"/></svg>
-    <header class="w__header"><h2 class="w__title" id="w-title"></h2></header>
+    <header class="w__header"><i class="w__icon" id="w-icon" aria-hidden="true"></i><h2 class="w__title" id="w-title"></h2></header>
     <div class="w__content">
       <div class="w__lines" aria-label="Контент виджета">
         <div class="w__line"></div><div class="w__line"></div><div class="w__line"></div>
@@ -1398,6 +1520,7 @@ widgetSlot.innerHTML = `
 const w = document.getElementById("w");
 const widgetFrame = document.querySelector(".widget-frame");
 const wTitle = document.getElementById("w-title");
+const wIcon = document.getElementById("w-icon");
 
 function renderWidget() {
   // Без заголовка «фон только на контенте» не отличим от фона на всём виджете
@@ -1423,6 +1546,13 @@ function renderWidget() {
 
   wTitle.textContent = state.name;
   w.style.setProperty("--w-title-size", FONTS[state.font].size + "px");
+  // Иконка перед заголовком (10501:51036): глиф, размер, цвет
+  const ic = state.icon;
+  const iconOn = ic.on && ic.glyph;
+  wIcon.hidden = !iconOn;
+  wIcon.textContent = iconOn ? ic.glyph : "";
+  wIcon.style.fontSize = ic.size + "px";
+  wIcon.style.color = ic.color ? rgba(ic.color, ic.opacity) : "transparent";
 
   // Размер и отступы: рамка выделения повторяет размер виджета, внешние отступы — внутри неё
   const { size, height, padding, margin } = state;
@@ -1736,6 +1866,61 @@ function shadowEditorHTML() {
     </div>`;
 }
 
+// Строка «Иконка» в блоке заголовка (10501:51036): кнопка с иконкой, размер, ✕
+function iconRowHTML() {
+  const ic = state.icon;
+  return `
+    <span class="label">Иконка</span>
+    <span class="row-editor" style="gap:8px">
+      <button class="icon-btn" data-action="icon-picker" aria-label="Выбрать иконку"><i class="ico" style="color:${rgba(ic.color, ic.opacity)}">${ic.glyph}</i></button>
+      <span class="editor">
+        <label class="num-field icon-size">${num("icon.size", ic.size, "", "Размер иконки")}</label>
+        <button class="swatch-clear" data-action="icon-clear" aria-label="Иконка: убрать"><i class="ico ico--s" data-i="close"></i></button>
+      </span>
+    </span>`;
+}
+
+// Окно выбора иконки (10506:60113)
+function iconPickerHTML() {
+  const { x, y, query = "", section: active = "recent" } = ui.iconPicker;
+  const q = query.trim().toLowerCase();
+  const ic = state.icon;
+  const cell = (glyph) => `<button class="ip-icon${ic.on && ic.glyph === glyph ? " is-current" : ""}" data-action="icon-pick" data-glyph="${glyph}"><i>${glyph}</i></button>`;
+  const sections = ICON_SECTIONS.filter((s) => !q || s.title.toLowerCase().includes(q));
+  return `
+    <div class="icon-picker" style="left:${x}px;top:${y}px" role="dialog" aria-label="Выбор иконки">
+      <header class="ip-head">
+        <button class="swatch ip-color" data-action="swatch" data-key="icon" style="--swatch-color:${rgba(ic.color, ic.opacity)}" aria-label="Цвет иконки"></button>
+        <label class="ip-search">
+          <input id="icon-search" value="${esc(query)}" placeholder="Найти" spellcheck="false" aria-label="Найти раздел иконок">
+          <i class="ico ico--s" aria-hidden="true"></i>
+        </label>
+        <button class="ip-close" data-action="icon-picker-close" aria-label="Закрыть"><i class="ico" data-i="close"></i></button>
+      </header>
+      <div class="ip-bottom">
+        <div class="ip-scroll" id="ip-scroll">
+          ${q ? "" : `
+          <div class="ip-group" data-section="recent">
+            <div class="ip-row">
+              <button class="ip-icon ip-icon--none" data-action="icon-clear" aria-label="Без иконки"><i></i></button>
+              ${recentIcons.map(cell).join("")}
+            </div>
+          </div>`}
+          ${sections.map((s) => `
+            <div class="ip-group" data-section="${s.key}">
+              <div class="ip-title">${s.title}</div>
+              <div class="ip-row">${s.icons.map(cell).join("")}</div>
+            </div>`).join("") || `<div class="ip-empty">Ничего не найдено</div>`}
+        </div>
+        <nav class="ip-rail" aria-label="Разделы">
+          <button class="ip-rail__btn${active === "recent" ? " is-active" : ""}" data-action="icon-section" data-section="recent" aria-label="Недавние">${String.fromCharCode(0xE68D)}</button>
+          ${ICON_SECTIONS.map((s) => `<button class="ip-rail__btn${active === s.key ? " is-active" : ""}" data-action="icon-section" data-section="${s.key}" aria-label="${s.title}">${String.fromCharCode(s.rail)}</button>`).join("")}
+          ${ICON_RAIL_EXTRA.map((gl) => `<button class="ip-rail__btn" disabled aria-hidden="true">${gl}</button>`).join("")}
+        </nav>
+      </div>
+    </div>`;
+}
+
 // Меню «Шрифт» — стили заголовка (10404:99461)
 function fontMenuHTML() {
   const { x, y } = ui.fontMenu;
@@ -1782,6 +1967,7 @@ function styleScreenHTML() {
          <span class="editor">${swatchEditor("title", "Заголовок", true)}</span>
          <span class="label">Шрифт</span>
          <span><button class="link" data-action="font-menu" aria-haspopup="menu">${FONTS[state.font].short} Inter · ${FONTS[state.font].size}</button></span>
+         ${state.icon.on && state.icon.glyph ? iconRowHTML() : ""}
          ${markerOn ? markerRow : ""}
        </div></div>`
     : markerOn
@@ -1793,7 +1979,7 @@ function styleScreenHTML() {
     !markerOn && `<button class="chip" data-action="marker-on">Маркер</button>`,
     !state.shadow.on && `<button class="chip" data-action="toggle" data-key="shadow">Тень</button>`,
     !state.radius.on && `<button class="chip" data-action="toggle" data-key="radius">Скругления</button>`,
-    isOn("title") && `<button class="chip" disabled>Иконка</button>`,
+    isOn("title") && !(state.icon.on && state.icon.glyph) && `<button class="chip" data-action="icon-picker">Иконка</button>`,
     !state.border.on && `<button class="chip" data-action="toggle" data-key="border">Границы</button>`,
   ].filter(Boolean).join("");
 
@@ -1944,9 +2130,9 @@ function presetsHTML() {
 
 // ---------- Пикер цвета ----------
 
-const PICKER_TITLES = { title: "Текст", marker: "Маркер", background: "Фон", border: "Границы" };
+const PICKER_TITLES = { title: "Текст", marker: "Маркер", background: "Фон", border: "Границы", icon: "Иконка" };
 // Сдвиг пикера относительно свотча — как в макете (11931:124361 / 124382 / 124403)
-const PICKER_OFFSET = { background: [-19, -68], title: [-16, -68], marker: [-30, -68], border: [-16, -68] };
+const PICKER_OFFSET = { background: [-19, -68], title: [-16, -68], marker: [-30, -68], border: [-16, -68], icon: [-16, 30] };
 
 // Скрытый нативный выбор цвета для «Другой цвет»; живёт вне перерисовываемого окна
 const nativeColor = Object.assign(document.createElement("input"), { type: "color", tabIndex: -1 });
@@ -2056,7 +2242,8 @@ function renderSettings() {
       + (ui.shadowPalette ? shadowPaletteHTML() : "")
       + (ui.shadowEditor ? shadowEditorHTML() : "")
       + (ui.lineMenu ? lineMenuHTML() : "")
-      + (ui.fontMenu ? fontMenuHTML() : "");
+      + (ui.fontMenu ? fontMenuHTML() : "")
+      + (ui.iconPicker ? iconPickerHTML() : "");
     settingsSlot.dataset.screen = ui.screen;
   }
   paintIcons(settingsSlot);
@@ -2120,6 +2307,32 @@ const ACTIONS = {
   },
   "font-menu-close": () => { ui.fontMenu = null; render(); },
   font: (el) => { ui.fontMenu = null; setState((s) => { s.font = el.dataset.font; }); },
+
+  // Иконка заголовка
+  "icon-picker": (el) => {
+    if (ui.iconPicker) { ui.iconPicker = null; return render(); }
+    ui.picker = null;
+    const fromChip = el.classList.contains("chip");
+    ui.iconPicker = { ...popupPos(el, fromChip ? -13 : -70, fromChip ? -14 : 30), query: "", section: "recent" };
+    render();
+  },
+  "icon-picker-close": () => { ui.iconPicker = null; render(); },
+  "icon-pick": (el) => {
+    const glyph = el.dataset.glyph;
+    recentIcons = [glyph, ...recentIcons.filter((x) => x !== glyph)].slice(0, 8);   // «недавние»
+    const scroll = settingsSlot.querySelector("#ip-scroll")?.scrollTop ?? 0;
+    setState((s) => { s.icon.on = true; s.icon.glyph = glyph; });
+    const sc = settingsSlot.querySelector("#ip-scroll");
+    if (sc) sc.scrollTop = scroll;   // окно остаётся открытым — иконки можно перебирать
+  },
+  "icon-clear": () => { ui.iconPicker = null; setState((s) => { s.icon.on = false; }); },
+  "icon-section": (el) => {
+    ui.iconPicker.section = el.dataset.section;
+    settingsSlot.querySelectorAll(".ip-rail__btn").forEach((b) => b.classList.toggle("is-active", b === el));
+    const target = settingsSlot.querySelector(`.ip-group[data-section="${el.dataset.section}"]`);
+    const sc = settingsSlot.querySelector("#ip-scroll");
+    if (target && sc) sc.scrollTop = target.offsetTop - sc.offsetTop;
+  },
 
   // Границы: тип линии
   "line-menu": (el) => { ui.lineMenu = ui.lineMenu ? null : popupPos(el, -12, 28); render(); },
@@ -2196,7 +2409,7 @@ function commitPickerField(input) {
 //   radius: all (все углы), tl/tr/br/bl;  border: all (все стороны), top/…;  shadow: x/y/blur/spread
 const FIELD_LIMITS = {
   size: [40, 2000], height: [40, 2000], padding: [0, 100], margin: [0, 100],
-  radius: [0, 100], border: [0, 20], shadow: [-50, 100],
+  radius: [0, 100], border: [0, 20], shadow: [-50, 100], icon: [8, 64],
 };
 const FIELD_ALIASES = {
   h: ["left", "right"], v: ["top", "bottom"],
@@ -2255,7 +2468,7 @@ document.addEventListener("keydown", (e) => {
   if (e.key !== "Escape") return;
   if (ui.picker) ACTIONS["picker-cancel"]();
   else if (ui.shadowPalette || ui.shadowEditor) ACTIONS["shadow-popup-cancel"]();
-  else if (ui.lineMenu || ui.fontMenu) { ui.lineMenu = ui.fontMenu = null; render(); }
+  else if (ui.lineMenu || ui.fontMenu || ui.iconPicker) { ui.lineMenu = ui.fontMenu = ui.iconPicker = null; render(); }
   else if (ui.presets) { ui.presets = false; render(); }
   else if (ui.heightMenu) { ui.heightMenu = false; render(); }
   else if (ui.menu) { ui.menu = null; render(); }
@@ -2267,10 +2480,10 @@ document.addEventListener("click", (e) => {
 }, true);
 
 // Попапы редакторов оформления: клик мимо закрывает (тень — с сохранением выбранного)
-function closeAppearancePopups() { ui.shadowPalette = ui.shadowEditor = ui.lineMenu = ui.fontMenu = null; }
+function closeAppearancePopups() { ui.shadowPalette = ui.shadowEditor = ui.lineMenu = ui.fontMenu = ui.iconPicker = null; }
 document.addEventListener("click", (e) => {
-  const open = ui.shadowPalette || ui.shadowEditor || ui.lineMenu || ui.fontMenu;
-  if (!open || e.target.closest(".shadow-palette, .shadow-editor, .line-menu, .font-menu, [data-action=shadow-palette], [data-action=line-menu], [data-action=font-menu]")) return;
+  const open = ui.shadowPalette || ui.shadowEditor || ui.lineMenu || ui.fontMenu || ui.iconPicker;
+  if (!open || e.target.closest(".shadow-palette, .shadow-editor, .line-menu, .font-menu, .icon-picker, .picker, [data-action=shadow-palette], [data-action=line-menu], [data-action=font-menu], [data-action=icon-picker]")) return;
   closeAppearancePopups();
   render();
 }, true);
@@ -2299,6 +2512,13 @@ settingsSlot.addEventListener("click", (e) => {
 
 settingsSlot.addEventListener("input", (e) => {
   if (e.target.id === "win-name") setState((s) => { s.name = e.target.value; });
+  // Поиск в окне иконок: обновляем только список, чтобы поле не теряло фокус
+  if (e.target.id === "icon-search") {
+    ui.iconPicker.query = e.target.value;
+    const tmp = document.createElement("div");
+    tmp.innerHTML = iconPickerHTML();
+    settingsSlot.querySelector("#ip-scroll").replaceWith(tmp.querySelector("#ip-scroll"));
+  }
 });
 
 // Окно закрыто — клик по виджету открывает его снова
