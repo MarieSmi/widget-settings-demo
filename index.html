@@ -914,6 +914,7 @@ button.swatch-clear:hover { color: var(--icon-secondary); }
 }
 .ip-head { display: flex; align-items: center; height: 48px; padding: 0 6px 0 16px; flex: none; }
 .ip-color { margin-right: 8px; }
+.ip-color:hover { margin: -2px 6px -2px -2px; }   /* рост на 4 px от центра без сдвига поиска: 8 − 2 справа */
 .ip-search {
   flex: 1;
   min-width: 0;
@@ -1036,7 +1037,6 @@ button:hover > .radio-off { visibility: visible; }
 .font-menu__bullet { position: absolute; left: 8px; top: 50%; transform: translateY(-50%); color: #cc3d00; }
 
 /* Цвет тени: окно как у пикеров (.picker), в палитре — готовые тени (PropertyGrid 30654:47696) */
-.sp-save { display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: var(--r-pill); background: var(--success); color: var(--bg); }
 .sp-swatches > button:not(.sp-add) { display: block; width: 28px; height: 28px; }
 .sp-swatches > button:not(.sp-add):hover .half-swatch--l { width: 32px; height: 32px; margin: -2px; }   /* как у кружков-вызовов: +4 px от центра */
 .sp-add { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: var(--r-pill); color: var(--icon-secondary); }
@@ -1051,10 +1051,9 @@ button:hover > .radio-off { visibility: visible; }
   border-radius: var(--r-m);
   filter: drop-shadow(0 0 23px rgba(0, 0, 0, 0.12)) drop-shadow(0 0 7.5px rgba(0, 0, 0, 0.12));
 }
-.se-head { display: flex; align-items: center; justify-content: space-between; height: 44px; padding: 6px 0 6px var(--sp-m); }
-.se-head h4 { margin: 0; padding-left: 4px; font-size: var(--fs-xl); font-weight: var(--fw-bold); }
-.se-cmds { display: flex; align-items: center; gap: var(--sp-m); padding: 0 var(--sp-2xs) 0 var(--sp-xs); }
-.se-reset .ico { font-size: 20px; color: var(--icon-label); }
+/* Шапка — как у окна настроек (.win__head): высота 44, слева 8 + 4 до названия, команды .win__cmds */
+.se-head { display: flex; align-items: center; height: 44px; padding: 6px var(--sp-2xs) 6px var(--sp-m); }   /* = отступ окна 4 + шапки */
+.se-head h4 { margin: 0; padding-left: var(--sp-2xs); font-size: var(--fs-xl); font-weight: var(--fw-bold); }
 .se-body { padding: 0 var(--sp-2xs) var(--sp-2xs); }
 .se-cloud { display: flex; flex-direction: column; gap: var(--sp-s); padding: var(--sp-s) var(--sp-m); background: var(--bg); border-radius: var(--r-s); }
 .se-row { display: flex; align-items: center; gap: var(--sp-s); min-height: 24px; }
@@ -1181,8 +1180,8 @@ button.size-unit:hover { color: var(--text-link); }
   border-radius: var(--r-s);
   text-align: left;
 }
-/* Ховер (Figma 10407:106588): фон карточки, скругление 12 px; у выбранного стиля ховера нет */
-.preset[aria-pressed="false"]:hover { background: #eff0f4; border-radius: var(--r-m); }   /* Background/unaccented_hover_background-color */
+/* Ховер (Figma 10407:106588): фон карточки, скругление 12 px — у всех карточек, включая применённый стиль */
+.preset:hover { background: #eff0f4; border-radius: var(--r-m); }   /* Background/unaccented_hover_background-color */
 /* Превью 224×116: каждый стиль показывает свою подложку */
 .preset__shot {
   display: block;
@@ -1324,8 +1323,14 @@ button.size-unit:hover { color: var(--text-link); }
   height: 32px;
   border: 1px solid var(--border-unaccented);
   border-radius: 18px;
-  background: var(--current, var(--bg));
+  position: relative;
+  overflow: hidden;
+  background: var(--bg);
 }
+/* Полупрозрачный цвет (Figma 16385:67929): под цветом — шахматка, как у свотча тени */
+.picker__current::before { content: ""; position: absolute; inset: 0; background: url("assets/checker.png") top left / 8px 8px; opacity: 0.15; }
+.picker__current::after { content: ""; position: absolute; inset: 0; background: var(--current, transparent); }
+.picker__current[data-none]::before { display: none; }
 /* «Нет цвета» (Figma 16385:66625): пустая белая плашка; в поле HEX — подсказка #FFFFFF, прозрачность 0 % */
 .picker__current[data-none] { background: var(--bg); }
 .picker__fields { display: flex; align-items: center; gap: var(--sp-s); }
@@ -1970,13 +1975,15 @@ function shadowEditorHTML() {
         </span>
       </div>`;
   };
+  const d = DEFAULT_STATE.shadow;
+  const atDefault = ["color", "opacity", "x", "y", "blur", "spread"].every((k) => s[k] === d[k]);
   return `
     <div class="shadow-editor" style="left:${x}px;top:${y}px" role="dialog" aria-label="Тень">
       <header class="se-head">
         <h4>Тень</h4>
-        <span class="se-cmds">
-          <button class="btn-icon se-reset" data-action="shadow-reset" aria-label="Сбросить тень"><i class="ico ico--s" data-i="reset"></i></button>
-          <button class="sp-save" data-action="shadow-popup-apply" aria-label="Применить"><i class="ico ico--s" data-i="check"></i></button>
+        <span class="win__cmds">   <!-- команды как в шапке окна настроек: ↻ 24, ✓ 28, ✕ 24, зазор 12 -->
+          <button class="btn-icon" data-action="shadow-reset" ${atDefault ? "data-idle" : ""} aria-label="Сбросить тень"><i class="ico" data-i="reset"></i></button>
+          <button class="btn-apply" data-action="shadow-popup-apply" aria-label="Применить"><i class="ico ico--s" data-i="check"></i></button>
           <button class="btn-icon" data-action="shadow-popup-cancel" aria-label="Закрыть"><i class="ico" data-i="close"></i></button>
         </span>
       </header>
@@ -2321,7 +2328,7 @@ function presetsHTML() {
 
 // ---------- Пикер цвета ----------
 
-const PICKER_TITLES = { title: "Текст", marker: "Маркер", background: "Фон", border: "Границы", icon: "Иконка", shadow: "Цвет тени" };
+const PICKER_TITLES = { title: "Текст", marker: "Маркер", background: "Фон", border: "Границы", icon: "Иконка", shadow: "Цвет" };
 // Сдвиг пикера относительно свотча — как в макете (11931:124361 / 124382 / 124403)
 const PICKER_OFFSET = { background: [-19, -68], title: [-16, -68], marker: [-30, -68], border: [-16, -68], icon: [-16, 30], shadow: [-16, -68] };
 
