@@ -277,7 +277,7 @@ button:focus-visible { outline: 2px solid var(--border-info); outline-offset: 2p
 }
 .w__title {
   margin: 0;
-  font-size: var(--fs-3xl);
+  font-size: var(--w-title-size, var(--fs-3xl));   /* стиль заголовка — меню «Шрифт» */
   font-weight: var(--fw-bold);
   line-height: 1.4;
   color: var(--w-title);
@@ -859,28 +859,39 @@ button.size-fill:not([disabled]):hover { color: var(--text-link); }
 .line-menu button { display: flex; align-items: center; justify-content: center; width: 48px; min-height: 32px; border-radius: var(--r-l); color: var(--icon-secondary); }
 .line-menu button:hover, .line-menu button[aria-checked="true"] { background: var(--bg-hover); }
 
-/* Выбор цвета тени — палитра (30654:47696) */
-.shadow-palette {
+/* Меню «Шрифт» — стили заголовка (Figma 10404:99461) */
+.font-menu {
   position: absolute;
   z-index: 4;
-  width: 362px;
-  padding: 6px 0 10px;
-  background: var(--bg-contrast);
-  border-radius: var(--r-s);
-  filter: drop-shadow(0 0 9px rgba(0, 0, 0, 0.12));
+  width: 250px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: var(--sp-s);
+  background: var(--bg);
+  border-radius: var(--r-m);
+  filter: drop-shadow(0 0 23px rgba(0, 0, 0, 0.12)) drop-shadow(0 0 7.5px rgba(0, 0, 0, 0.12));
 }
-.sp-head { position: relative; display: flex; align-items: center; gap: var(--sp-m); width: 350px; margin: 0 auto; padding: var(--sp-s) 6px var(--sp-s) var(--sp-m); }
-.sp-head::before { content: ""; position: absolute; inset: 4px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; }
-.sp-head > * { position: relative; }
-.sp-title { flex: 1; display: flex; align-items: center; gap: 6px; font-size: var(--fs-xl); }
-.sp-current { width: 80px; height: 36px; border: 1px solid var(--border-unaccented); border-radius: 18px; background: var(--sp-current); }
-.sp-tool { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: var(--r-pill); color: var(--icon-secondary); }
-.sp-tool[disabled] { cursor: default; }
+.font-menu__item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 40px;
+  padding: var(--sp-s) var(--sp-s) var(--sp-s) 22px;
+  border-radius: var(--r-s);
+  font-weight: var(--fw-bold);
+  line-height: normal;
+  letter-spacing: 0;
+  text-align: left;
+  white-space: nowrap;
+}
+.font-menu__item:hover:not([disabled]),
+.font-menu__item[aria-checked="true"] { background: #eff1f5; }        /* Background/active_background-color */
+.font-menu__item--custom { font-size: var(--fs-m); font-weight: var(--fw-regular); letter-spacing: var(--tracking); cursor: default; }
+.font-menu__bullet { position: absolute; left: 8px; top: 50%; transform: translateY(-50%); color: #cc3d00; }
+
+/* Цвет тени: окно как у пикеров (.picker), в палитре — готовые тени (PropertyGrid 30654:47696) */
 .sp-save { display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: var(--r-pill); background: var(--success); color: var(--bg); }
-.sp-close { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; color: var(--icon-label); }
-.sp-body { position: relative; width: 350px; margin: 0 auto; padding: var(--sp-m) var(--sp-s); }
-.sp-body::before { content: ""; position: absolute; inset: 0 4px; background: var(--bg); border-radius: 6px; }
-.sp-swatches { position: relative; display: flex; flex-wrap: wrap; gap: 8px 5px; padding: 0 4px; }
 .sp-swatches > button:not(.sp-add) { display: block; width: 28px; height: 28px; }
 .sp-swatches > button:not(.sp-add):hover .half-swatch--l { width: 32px; height: 32px; margin: -2px; }   /* как у кружков-вызовов: +4 px от центра */
 .sp-add { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: var(--r-pill); color: var(--icon-secondary); }
@@ -1340,6 +1351,7 @@ const DEFAULT_STATE = {
   padding: { top: 12, right: 12, bottom: 12, left: 12, split: false },   // внутренние
   margin:  { top: 0, right: 0, bottom: 0, left: 0, split: false },       // внешние
   hideEmpty: true,                // «Скрывать без данных»
+  font: "h4",                     // стиль заголовка: h1…h6 (Figma 10404:99461)
   // Редакторы оформления (Figma PropertyGrid, раздел «Оформление» 23882:236259).
   // on: false — строка убрана в чипсы на экране «Стиль».
   shadow: { on: true, color: "#000000", opacity: 6, x: 0, y: 0, blur: 8, spread: 0 },   // по умолчанию shadow_c
@@ -1356,6 +1368,16 @@ function partColor(key) {
   return key === "background" ? backgroundFill(color, opacity) : rgba(color, opacity);
 }
 const isOn = (key) => state[key].on && !!state[key].color;
+
+// Стили заголовка — меню «Шрифт» (Figma 10404:99461), Inter Semi Bold
+const FONTS = {
+  h1: { label: "Заголовок 1", short: "H1", size: 24 },
+  h2: { label: "Заголовок 2", short: "H2", size: 22 },
+  h3: { label: "Заголовок 3", short: "H3", size: 20 },
+  h4: { label: "Заголовок 4", short: "H4", size: 18 },
+  h5: { label: "Заголовок 5", short: "H5", size: 16 },
+  h6: { label: "Заголовок 6", short: "H6", size: 14 },
+};
 
 let state = structuredClone(DEFAULT_STATE);
 
@@ -1400,6 +1422,7 @@ function renderWidget() {
   w.style.setProperty("--w-fill", partColor("background") || "transparent");
 
   wTitle.textContent = state.name;
+  w.style.setProperty("--w-title-size", FONTS[state.font].size + "px");
 
   // Размер и отступы: рамка выделения повторяет размер виджета, внешние отступы — внутри неё
   const { size, height, padding, margin } = state;
@@ -1634,22 +1657,49 @@ function borderRowHTML() {
     </span>`;
 }
 
+// Цвет тени — оформлено как пикеры фона и цвета (11931:124402), палитра — готовые тени (PropertyGrid 30654:47696)
 function shadowPaletteHTML() {
   const { x, y } = ui.shadowPalette;
   const s = state.shadow;
+  const d = DEFAULT_STATE.shadow;
+  const atDefault = s.color === d.color && s.opacity === d.opacity && s.x === d.x && s.y === d.y && s.blur === d.blur && s.spread === d.spread;
   return `
-    <div class="shadow-palette" style="left:${x}px;top:${y}px" role="dialog" aria-label="Цвет тени">
-      <div class="sp-head">
-        <span class="sp-title">Цвет <span class="sp-current" style="--sp-current:${rgba(s.color, s.opacity)}"></span></span>
-        <button class="sp-tool" disabled aria-label="Пипетка"><svg class="icon" width="16" height="16"><use href="#i-pipette"/></svg></button>
-        <button class="sp-tool" data-action="shadow-reset" aria-label="Сбросить тень"><i class="ico ico--s" data-i="reset"></i></button>
-        <button class="sp-save" data-action="shadow-popup-apply" aria-label="Применить"><i class="ico ico--s" data-i="check"></i></button>
-        <button class="sp-close" data-action="shadow-popup-cancel" aria-label="Закрыть"><i class="ico" data-i="close"></i></button>
+    <div class="picker shadow-palette" style="left:${x}px;top:${y}px" role="dialog" aria-label="Тень">
+      <header class="picker__head">
+        <span class="picker__caption">Тень</span>
+        <span class="picker__mid"></span>
+        <span class="picker__cmds">
+          <span class="picker__tools">
+            <button class="picker__tool" disabled aria-label="Пипетка"><svg class="icon" width="16" height="16"><use href="#i-pipette"/></svg></button>
+            <button class="picker__tool" data-action="shadow-reset" ${atDefault ? "data-idle" : ""} aria-label="Сбросить тень"><i class="ico" data-i="reset"></i></button>
+          </span>
+          <button class="btn-apply" data-action="shadow-popup-apply" aria-label="Применить"><i class="ico ico--s" data-i="check"></i></button>
+        </span>
+        <button class="picker__close" data-action="shadow-popup-cancel" aria-label="Закрыть"><svg><use href="#i-picker-close"/></svg></button>
+      </header>
+      <div class="picker__body">
+        <div class="pcloud picker__code">
+          <span class="picker__current" style="--current:${rgba(s.color, s.opacity)}"></span>
+          <span class="picker__fields">
+            <span class="ufield ufield--format">HEX<i class="ico ico--s" data-i="formatArrow"></i></span>
+            <span class="picker__alpha">
+              <label class="ufield ufield--hex"><input id="shadow-hex" value="${s.color.toUpperCase()}" maxlength="7" spellcheck="false" aria-label="Цвет тени"></label>
+              <label class="ufield ufield--alpha"><input id="shadow-alpha" value="${s.opacity}" inputmode="numeric" maxlength="3" aria-label="Непрозрачность тени, %"></label>
+              <span class="pct">%</span>
+            </span>
+          </span>
+        </div>
+        <div class="pcloud pcloud--colors">
+          <div class="palette sp-swatches">
+            ${SHADOW_PRESETS.map((p) => `<button data-action="shadow-preset" data-color="${p.color}" data-opacity="${p.opacity}" aria-label="${p.color}, ${p.opacity / 100}">${halfSwatch(p.color, p.opacity, "half-swatch--l")}</button>`).join("")}
+            <button class="sp-add" data-action="shadow-editor" aria-label="Параметры тени"><i class="ico ico--s" data-i="plus"></i></button>
+          </div>
+          <div class="picker__links"><div>
+            <button class="plink" data-action="shadow-native">Другой цвет</button>
+            <button class="plink" data-action="shadow-editor">Параметры тени</button>
+          </div></div>
+        </div>
       </div>
-      <div class="sp-body"><div class="sp-swatches">
-        ${SHADOW_PRESETS.map((p) => `<button data-action="shadow-preset" data-color="${p.color}" data-opacity="${p.opacity}" aria-label="${p.color}, ${p.opacity / 100}">${halfSwatch(p.color, p.opacity, "half-swatch--l")}</button>`).join("")}
-        <button class="sp-add" data-action="shadow-editor" aria-label="Настроить тень"><i class="ico ico--s" data-i="plus"></i></button>
-      </div></div>
     </div>`;
 }
 
@@ -1686,6 +1736,20 @@ function shadowEditorHTML() {
     </div>`;
 }
 
+// Меню «Шрифт» — стили заголовка (10404:99461)
+function fontMenuHTML() {
+  const { x, y } = ui.fontMenu;
+  return `
+    <div class="font-menu" style="left:${x}px;top:${y}px" role="menu" aria-label="Стиль заголовка">
+      ${Object.entries(FONTS).map(([k, f]) => `
+        <button class="font-menu__item" role="menuitemradio" aria-checked="${state.font === k}" data-action="font" data-font="${k}" style="font-size:${f.size}px">
+          ${state.font === k ? `<svg class="font-menu__bullet" width="12" height="12"><use href="#i-bullet"/></svg>` : ""}${f.label}
+        </button>`).join("")}
+      <button class="font-menu__item font-menu__item--custom" disabled>Свой стиль</button>
+      <button class="presets__close" data-action="font-menu-close" aria-label="Закрыть"><svg width="12" height="12"><use href="#i-popup-close"/></svg></button>
+    </div>`;
+}
+
 function lineMenuHTML() {
   const { x, y } = ui.lineMenu;
   return `
@@ -1717,7 +1781,7 @@ function styleScreenHTML() {
          <span class="label label--strong">Заголовок</span>
          <span class="editor">${swatchEditor("title", "Заголовок", true)}</span>
          <span class="label">Шрифт</span>
-         <span><span class="text-link-static">H4 Inter · 18</span></span>
+         <span><button class="link" data-action="font-menu" aria-haspopup="menu">${FONTS[state.font].short} Inter · ${FONTS[state.font].size}</button></span>
          ${markerOn ? markerRow : ""}
        </div></div>`
     : markerOn
@@ -1889,7 +1953,10 @@ const nativeColor = Object.assign(document.createElement("input"), { type: "colo
 nativeColor.style.cssText = "position:absolute;width:0;height:0;opacity:0;pointer-events:none";
 nativeColor.setAttribute("aria-hidden", "true");
 document.body.append(nativeColor);
-nativeColor.addEventListener("input", () => ui.picker && pickColor(ui.picker.key, nativeColor.value));
+nativeColor.addEventListener("input", () => {
+  if (ui.picker) pickColor(ui.picker.key, nativeColor.value);
+  else if (ui.shadowPalette) setState((s) => { s.shadow.color = nativeColor.value; });
+});
 
 function pickerHTML() {
   const { key, x, y } = ui.picker;
@@ -1988,7 +2055,8 @@ function renderSettings() {
       + (ui.heightMenu ? heightMenuHTML() : "")
       + (ui.shadowPalette ? shadowPaletteHTML() : "")
       + (ui.shadowEditor ? shadowEditorHTML() : "")
-      + (ui.lineMenu ? lineMenuHTML() : "");
+      + (ui.lineMenu ? lineMenuHTML() : "")
+      + (ui.fontMenu ? fontMenuHTML() : "");
     settingsSlot.dataset.screen = ui.screen;
   }
   paintIcons(settingsSlot);
@@ -2022,7 +2090,7 @@ const ACTIONS = {
   "shadow-palette": (el) => {
     const before = ui.shadowEditor?.before ?? structuredClone(state.shadow);
     ui.shadowEditor = null;
-    ui.shadowPalette = { ...popupPos(el, -16, -14), before };
+    ui.shadowPalette = { ...popupPos(el, -16, -68), before };   // как у пикеров цвета
     render();
   },
   "shadow-editor": () => {
@@ -2030,6 +2098,10 @@ const ACTIONS = {
     ui.shadowPalette = null;
     ui.shadowEditor = { x: x + 30, y: y + 6, before };
     render();
+  },
+  "shadow-native": () => {
+    nativeColor.value = state.shadow.color;
+    nativeColor.showPicker ? nativeColor.showPicker() : nativeColor.click();
   },
   "shadow-preset": (el) => setState((s) => { s.shadow.color = el.dataset.color; s.shadow.opacity = +el.dataset.opacity; }),
   "shadow-reset": () => setState((s) => { s.shadow = { ...structuredClone(DEFAULT_STATE.shadow), on: true }; }),
@@ -2039,6 +2111,18 @@ const ACTIONS = {
     ui.shadowPalette = ui.shadowEditor = null;
     setState((s) => { s.shadow = before; });
   },
+
+  // Шрифт заголовка: меню открывается так, чтобы выбранный пункт стоял на месте ссылки
+  "font-menu": (el) => {
+    // Высоты пунктов из макета: 45, 43, 40…; центр выбранного пункта — на уровне центра ссылки
+    const heights = [45, 43, 40, 40, 40, 40];
+    const idx = Object.keys(FONTS).indexOf(state.font);
+    const above = 8 + heights.slice(0, idx).reduce((a, h) => a + h + 6, 0) + heights[idx] / 2;
+    ui.fontMenu = ui.fontMenu ? null : popupPos(el, -30, Math.round(el.getBoundingClientRect().height / 2 - above));
+    render();
+  },
+  "font-menu-close": () => { ui.fontMenu = null; render(); },
+  font: (el) => { ui.fontMenu = null; setState((s) => { s.font = el.dataset.font; }); },
 
   // Границы: тип линии
   "line-menu": (el) => { ui.lineMenu = ui.lineMenu ? null : popupPos(el, -12, 28); render(); },
@@ -2085,6 +2169,16 @@ const ACTIONS = {
 
 // Поля HEX и прозрачности: применяем по Enter или при уходе с поля
 function commitPickerField(input) {
+  // Окно цвета тени: те же поля HEX и непрозрачности
+  if (input.id === "shadow-hex" || input.id === "shadow-alpha") {
+    if (input.id === "shadow-hex") {
+      let v = input.value.trim().replace(/^#?/, "#").toLowerCase();
+      if (/^#[0-9a-f]{3}$/.test(v)) v = "#" + [...v.slice(1)].map((c) => c + c).join("");
+      return /^#[0-9a-f]{6}$/.test(v) ? setState((s) => { s.shadow.color = v; }) : render();
+    }
+    const n = Math.round(Number(input.value));
+    return Number.isFinite(n) ? setState((s) => { s.shadow.opacity = Math.min(100, Math.max(0, n)); }) : render();
+  }
   const key = ui.picker?.key;
   if (!key) return;
   if (input.id === "picker-hex") {
@@ -2164,7 +2258,7 @@ document.addEventListener("keydown", (e) => {
   if (e.key !== "Escape") return;
   if (ui.picker) ACTIONS["picker-cancel"]();
   else if (ui.shadowPalette || ui.shadowEditor) ACTIONS["shadow-popup-cancel"]();
-  else if (ui.lineMenu) { ui.lineMenu = null; render(); }
+  else if (ui.lineMenu || ui.fontMenu) { ui.lineMenu = ui.fontMenu = null; render(); }
   else if (ui.presets) { ui.presets = false; render(); }
   else if (ui.heightMenu) { ui.heightMenu = false; render(); }
   else if (ui.menu) { ui.menu = null; render(); }
@@ -2176,10 +2270,10 @@ document.addEventListener("click", (e) => {
 }, true);
 
 // Попапы редакторов оформления: клик мимо закрывает (тень — с сохранением выбранного)
-function closeAppearancePopups() { ui.shadowPalette = ui.shadowEditor = ui.lineMenu = null; }
+function closeAppearancePopups() { ui.shadowPalette = ui.shadowEditor = ui.lineMenu = ui.fontMenu = null; }
 document.addEventListener("click", (e) => {
-  const open = ui.shadowPalette || ui.shadowEditor || ui.lineMenu;
-  if (!open || e.target.closest(".shadow-palette, .shadow-editor, .line-menu, [data-action=shadow-palette], [data-action=line-menu]")) return;
+  const open = ui.shadowPalette || ui.shadowEditor || ui.lineMenu || ui.fontMenu;
+  if (!open || e.target.closest(".shadow-palette, .shadow-editor, .line-menu, .font-menu, [data-action=shadow-palette], [data-action=line-menu], [data-action=font-menu]")) return;
   closeAppearancePopups();
   render();
 }, true);
