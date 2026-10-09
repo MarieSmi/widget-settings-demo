@@ -683,9 +683,6 @@ button.swatch-clear:hover { color: var(--icon-secondary); }
   outline: none;
 }
 .size-field input::placeholder { color: rgba(137, 145, 169, 0.6); }   /* placeholder-color_inputtext */
-.size-fill { color: var(--text-label); white-space: nowrap; }
-button.size-fill:not([disabled]):hover { color: var(--text-link); }
-.size-fill[disabled] { cursor: default; }
 
 .cloud--pads { gap: var(--sp-2xs); }
 .cloud__title { display: flex; align-items: center; height: 24px; font-size: var(--fs-l); font-weight: var(--fw-bold); }
@@ -1042,6 +1039,46 @@ button.size-fill:not([disabled]):hover { color: var(--text-link); }
 .se-slider input[type="range"]::-moz-range-track { height: 2px; border-radius: 8px; background: #dbdbdb; }
 .se-slider input[type="range"]::-moz-range-progress { height: 2px; border-radius: 8px; background: #265fa1; }
 .se-slider input[type="range"]::-moz-range-thumb { width: 12px; height: 12px; border: 0; border-radius: 50%; background: var(--bg); box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25); }
+
+/* Поле размера: единица справа — кнопка меню величин (PropertyGrid 23509:285935) */
+.size-unit { flex: none; color: var(--text-label); white-space: nowrap; }
+button.size-unit:hover { color: var(--text-link); }
+.edge-clear { display: flex; align-items: center; justify-content: center; width: 16px; height: 24px; color: var(--icon-unaccented); }
+.edge-clear .ico { font-size: 12px; }                  /* «Сброс»: cbuc-icons 12 px */
+.edge-clear:hover { color: var(--icon-secondary); }
+
+/* Меню величин (PropertyGrid 23509:289386) */
+.size-menu {
+  position: absolute;
+  z-index: 4;
+  width: 198px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: var(--sp-m) var(--sp-s);
+  background: var(--bg);
+  border-radius: var(--r-s);
+  filter: drop-shadow(0 0 9px rgba(0, 0, 0, 0.12));
+}
+.size-menu__item {
+  display: flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 var(--sp-s);
+  border-radius: var(--r-l);
+  font-size: var(--fs-xl);
+  text-align: left;
+  white-space: nowrap;
+}
+.size-menu__item:hover { background: var(--bg-hover); }
+.size-menu__item--edge { padding-left: 22px; }          /* 2 + отступ дерева 20 */
+.size-menu__bullet { flex: none; margin-right: 2px; color: #cc3d00; }
+.size-menu__group {
+  padding: 4px 16px 4px 22px;
+  color: var(--text-label);
+  text-transform: uppercase;
+  letter-spacing: 1.25px;
+}
 
 /* Меню режимов высоты (Figma 10449:40679): позиция относительно окна (43, 140) */
 .hmenu {
@@ -1445,11 +1482,14 @@ const DEFAULT_STATE = {
   title: { on: true, color: "#000000", opacity: 100 },
   marker: { on: true, color: "#0085f2", opacity: 100 },
   background: { on: true, color: "#ffffff", opacity: 100, fill: "widget" },
-  // Экран «Размер»: null — «заполнить» (ячейка дашборда 557×280)
-  size: { w: null },              // ширина; null — «заполнить»
-  // Высота — 4 режима (Figma 10449:37401): fill — ячейка 280, fixed — value,
-  // content — по содержимому, limited — по содержимому в пределах min…max
-  height: { mode: "fill", value: 240, min: 200, max: 500 },
+  // Размер (редактор PropertyGrid 23509:285817): у ширины и высоты режим
+  //   px — фиксированная, pct — относительная (% от ячейки 557×280), auto — по контенту, fill — заполнить;
+  // min/max — краевые значения «Добавить» (null — не добавлены)
+  size: {
+    w: { mode: "fill", px: 557, pct: 100 },
+    h: { mode: "fill", px: 240, pct: 100 },
+    minW: null, maxW: null, minH: null, maxH: null,
+  },
   // Отступы по сторонам; split — раскрыт редактор по сторонам (PropertyGrid 24008:202564)
   padding: { top: 12, right: 12, bottom: 12, left: 12, split: false },   // внутренние
   margin:  { top: 0, right: 0, bottom: 0, left: 0, split: false },       // внешние
@@ -1555,12 +1595,16 @@ function renderWidget() {
   wIcon.style.color = ic.color ? rgba(ic.color, ic.opacity) : "transparent";
 
   // Размер и отступы: рамка выделения повторяет размер виджета, внешние отступы — внутри неё
-  const { size, height, padding, margin } = state;
-  const auto = height.mode === "content" || height.mode === "limited";   // высота по содержимому
-  widgetFrame.style.width = (size.w ?? CELL.w) + "px";
-  widgetFrame.style.height = auto ? "" : (height.mode === "fixed" ? height.value : CELL.h) + "px";
-  widgetFrame.style.minHeight = height.mode === "limited" ? height.min + "px" : "";
-  widgetFrame.style.maxHeight = height.mode === "limited" ? height.max + "px" : "";
+  const { size, padding, margin } = state;
+  // Размер одной оси: px — значение, pct — доля ячейки, fill — ячейка, auto — по содержимому ("")
+  const axis = (a, cell) => ({ px: a.px + "px", pct: Math.round(cell * a.pct / 100) + "px", fill: cell + "px", auto: "" })[a.mode];
+  const auto = size.w.mode === "auto" || size.h.mode === "auto";   // слот в потоке, рамка по содержимому
+  widgetFrame.style.width = size.w.mode === "auto" ? "fit-content" : axis(size.w, CELL.w);
+  widgetFrame.style.height = axis(size.h, CELL.h);
+  widgetFrame.style.minWidth = size.minW != null ? size.minW + "px" : "";
+  widgetFrame.style.maxWidth = size.maxW != null ? size.maxW + "px" : "";
+  widgetFrame.style.minHeight = size.minH != null ? size.minH + "px" : "";
+  widgetFrame.style.maxHeight = size.maxH != null ? size.maxH + "px" : "";
   widgetFrame.toggleAttribute("data-auto", auto);
   // Внешние отступы: в обычном режиме — inset абсолютного слота, по содержимому — margin
   const m = `${margin.top}px ${margin.right}px ${margin.bottom}px ${margin.left}px`;
@@ -1652,7 +1696,7 @@ function mainScreenHTML() {
       <div class="cloud">
         <div class="row">
           <span class="label">Высота</span>
-          <span class="row__grow"><button class="link" data-action="height-menu" aria-haspopup="menu">${HEIGHT_MODES[state.height.mode].label}</button></span>
+          <span class="row__grow"><button class="link" data-action="height-menu" aria-haspopup="menu">${heightModeLabel()}</button></span>
           <button class="btn-arrow" data-action="screen" data-screen="size" aria-label="Размер">${arrowRight}</button>
         </div>
       </div>
@@ -2027,49 +2071,78 @@ const HEIGHT_MODES = {
   fill:    { label: "Заполнить",                  item: "Заполнить" },
 };
 
+// Режим высоты для главного экрана — выводится из модели размеров
+function heightMode() {
+  const { h, minH, maxH } = state.size;
+  if (h.mode === "auto") return minH != null || maxH != null ? "limited" : "content";
+  if (h.mode === "fill") return "fill";
+  return "fixed";   // px и % — фиксированная
+}
+const heightModeLabel = () => state.size.h.mode === "pct" ? "Относительная" : HEIGHT_MODES[heightMode()].label;
+
 function heightMenuHTML() {
+  const cur = heightMode();
   return `
     <div class="hmenu" role="menu" aria-label="Высота">
       ${Object.entries(HEIGHT_MODES).map(([k, m]) => `
-        <button class="hmenu__item" role="menuitemradio" aria-checked="${state.height.mode === k}" data-action="height-mode" data-mode="${k}">
-          <svg class="hmenu__bullet" width="12" height="12">${state.height.mode === k ? `<use href="#i-bullet"/>` : ""}</svg>
+        <button class="hmenu__item" role="menuitemradio" aria-checked="${cur === k}" data-action="height-mode" data-mode="${k}">
+          <svg class="hmenu__bullet" width="12" height="12">${cur === k ? `<use href="#i-bullet"/>` : ""}</svg>
           ${m.item}
         </button>`).join("")}
       <button class="presets__close" data-action="height-menu-close" aria-label="Закрыть"><svg width="12" height="12"><use href="#i-popup-close"/></svg></button>
     </div>`;
 }
 
-// Экран «Размер» (11931:126178; режимы высоты — 10449:41150, 10451:42079, 10451:43368, 10451:44963)
+// Меню величин (PropertyGrid 23509:289386): режим оси + «Добавить» краевые значения
+const SIZE_MODES = { px: "фиксированная (px)", pct: "относительная (%)", auto: "по контенту (auto)", fill: "заполнить" };
+const EDGE_ITEMS = { minW: "Min ширину", maxW: "Max ширину", minH: "Min высоту", maxH: "Max высоту" };
+function sizeMenuHTML() {
+  const { x, y, key } = ui.sizeMenu;
+  const cur = state.size[key].mode;
+  const free = Object.entries(EDGE_ITEMS).filter(([k]) => state.size[k] == null);
+  return `
+    <div class="size-menu" style="left:${x}px;top:${y}px" role="menu" aria-label="Величина">
+      ${Object.entries(SIZE_MODES).map(([m, label]) => `
+        <button class="size-menu__item" role="menuitemradio" aria-checked="${cur === m}" data-action="size-mode" data-key="${key}" data-mode="${m}">
+          <svg class="size-menu__bullet" width="12" height="12">${cur === m ? `<use href="#i-bullet"/>` : ""}</svg>${label}
+        </button>`).join("")}
+      ${free.length ? `
+        <div class="size-menu__group">Добавить</div>
+        ${free.map(([k, label]) => `<button class="size-menu__item size-menu__item--edge" data-action="edge-add" data-key="${k}">${label}</button>`).join("")}` : ""}
+    </div>`;
+}
+
+// Экран «Размер» (11931:126178; поле размера и меню величин — PropertyGrid 23509:285817)
 function sizeScreenHTML() {
-  const { size, height, padding, margin, hideEmpty } = state;
-  const widthField = `
-    <span class="label">Ширина</span>
-    <label class="size-field">
-      <input id="size-w" data-field="size.w" value="${size.w ?? ""}" placeholder="${CELL.w}" inputmode="numeric" maxlength="4" aria-label="Ширина, px">
-      <button class="size-fill" data-action="size-fill" data-key="w" ${size.w == null ? "disabled" : ""}>заполнить</button>
-    </label>`;
-  // Высота: значение и подпись справа зависят от режима
-  const hView = {
-    fill:    { value: "", placeholder: CELL.h, suffix: "заполнить" },
-    fixed:   { value: height.value, placeholder: "", suffix: "px" },
-    content: { value: "", placeholder: widgetFrame.offsetHeight, suffix: "по контенту" },
-    limited: { value: height.min, placeholder: "", suffix: "px" },
-  }[height.mode];
-  const heightField = `
-    <span class="label">Высота</span>
-    <label class="size-field">
-      <input id="size-h" data-field="height.value" value="${hView.value}" placeholder="${hView.placeholder}" inputmode="numeric" maxlength="4" aria-label="Высота, px">
-      <span class="size-fill">${hView.suffix}</span>
-    </label>`;
-  const maxField = height.mode !== "limited" ? "" : `
-    <span class="label">Max высота</span>
+  const { size, padding, margin, hideEmpty } = state;
+  // Поле размера (PropertyGrid 23509:285935): значение + единица; клик по единице — меню величин
+  const UNIT = { px: "px", pct: "%", auto: "по контенту", fill: "заполнить" };
+  const actual = { w: widgetFrame.offsetWidth, h: widgetFrame.offsetHeight };
+  const sizeField = (k, label) => {
+    const a = size[k];
+    const fixed = a.mode === "px" || a.mode === "pct";
+    const value = a.mode === "px" ? a.px : a.mode === "pct" ? a.pct : "";
+    return `
+      <span class="label">${label}</span>
+      <label class="size-field">
+        <input id="size-${k}" data-field="size.${k}" value="${value}" placeholder="${fixed ? "" : actual[k]}" inputmode="numeric" maxlength="4" aria-label="${label}">
+        <button class="size-unit" data-action="size-menu" data-key="${k}" aria-haspopup="menu">${UNIT[a.mode]}</button>
+      </label>`;
+  };
+  // Краевые значения: Min/Max ширина/высота, px, ✕ — убрать
+  const EDGES = [["minW", "Min ширина"], ["maxW", "Max ширина"], ["minH", "Min высота"], ["maxH", "Max высота"]];
+  const edgeRows = EDGES.filter(([k]) => size[k] != null).map(([k, label]) => `
+    <span class="label">${label}</span>
     <span class="editor">
       <label class="size-field">
-        <input id="size-max" data-field="height.max" value="${height.max}" inputmode="numeric" maxlength="4" aria-label="Максимальная высота, px">
-        <span class="size-fill">px</span>
+        <input data-field="size.${k}" value="${size[k]}" inputmode="numeric" maxlength="4" aria-label="${label}, px">
+        <span class="size-unit">px</span>
       </label>
-      <button class="swatch-clear" data-action="height-mode" data-mode="content" aria-label="Убрать ограничение"><i class="ico ico--s" data-i="close"></i></button>
-    </span>`;
+      <button class="edge-clear" data-action="edge-remove" data-key="${k}" aria-label="${label}: убрать"><i class="ico ico--s" data-i="close"></i></button>
+    </span>`).join("");
+  const widthField = sizeField("w", "Ширина");
+  const heightField = sizeField("h", "Высота");
+  const maxField = edgeRows;
   // Отступы: два поля (по горизонтали / вертикали) или блок по сторонам (PropertyGrid 23882:236302)
   const padRow = (group, label, cls) => `
     <div class="pad-row ${state[group].split ? "" : cls}">
@@ -2239,6 +2312,7 @@ function renderSettings() {
       + (ui.picker ? pickerHTML() : "")
       + (ui.presets ? presetsHTML() : "")
       + (ui.heightMenu ? heightMenuHTML() : "")
+      + (ui.sizeMenu ? sizeMenuHTML() : "")
       + (ui.shadowPalette ? shadowPaletteHTML() : "")
       + (ui.shadowEditor ? shadowEditorHTML() : "")
       + (ui.lineMenu ? lineMenuHTML() : "")
@@ -2349,10 +2423,40 @@ const ACTIONS = {
   },
 
   // Размер
-  "size-fill": () => setState((s) => { s.size.w = null; }),
+  // Меню величин: режим оси и краевые значения
+  "size-menu": (el) => { ui.sizeMenu = ui.sizeMenu?.key === el.dataset.key ? null : { key: el.dataset.key, ...popupPos(el, -30, -16) }; render(); },
+  "size-mode": (el) => {
+    const k = el.dataset.key, mode = el.dataset.mode;
+    const actual = k === "w" ? widgetFrame.offsetWidth : widgetFrame.offsetHeight;
+    ui.sizeMenu = null;
+    setState((s) => {
+      // в фиксированный режим — с текущим фактическим размером
+      if (mode === "px" && s.size[k].mode !== "px") s.size[k].px = actual;
+      s.size[k].mode = mode;
+    });
+  },
+  "edge-add": (el) => {
+    const k = el.dataset.key;
+    const actual = k.endsWith("W") ? widgetFrame.offsetWidth : widgetFrame.offsetHeight;
+    ui.sizeMenu = null;
+    setState((s) => { s.size[k] = actual; });
+  },
+  "edge-remove": (el) => setState((s) => { s.size[el.dataset.key] = null; }),
   "height-menu": () => { ui.picker = null; ui.menu = null; ui.presets = false; ui.heightMenu = true; render(); },
   "height-menu-close": () => { ui.heightMenu = false; render(); },
-  "height-mode": (el) => { ui.heightMenu = false; setState((s) => { s.height.mode = el.dataset.mode; }); },
+  // Меню высоты главного экрана → модель размеров
+  "height-mode": (el) => {
+    ui.heightMenu = false;
+    setState((s) => {
+      const h = s.size.h;
+      switch (el.dataset.mode) {
+        case "fixed":   h.mode = "px"; break;
+        case "content": h.mode = "auto"; s.size.minH = s.size.maxH = null; break;
+        case "limited": h.mode = "auto"; s.size.minH ??= 200; s.size.maxH ??= 500; break;
+        case "fill":    h.mode = "fill"; break;
+      }
+    });
+  },
   "hide-empty": () => setState((s) => { s.hideEmpty = !s.hideEmpty; }),
 
   // Пикер
@@ -2429,17 +2533,26 @@ function setGroupValue(s, group, key, v) {
 function commitSizeField(input) {
   const [group, key] = input.dataset.field.split(".");
   const raw = input.value.trim();
-  if (group === "size" && raw === "") return setState((s) => { s.size.w = null; });
   const n = Math.round(Number(raw));
   if (!Number.isFinite(n) || raw === "") return render();   // неверное или пустое значение — вернуть прежнее
+  if (group === "size") return commitSize(key, n);
   const [min, max] = FIELD_LIMITS[group];
   const v = Math.min(max, Math.max(min, n));
+  setState((s) => setGroupValue(s, group, key, v));
+}
+
+// Размер: w/h — значение в текущей единице (в «по контенту» и «заполнить» ввод числа делает ось фиксированной);
+// minW…maxH — краевые значения в px
+function commitSize(key, n) {
   setState((s) => {
-    if (group !== "height") { setGroupValue(s, group, key, v); return; }
-    if (key === "max") { s.height.max = Math.max(v, s.height.min); return; }
-    // «Высота»: в режиме с ограничением — минимум, иначе ввод числа делает высоту фиксированной
-    if (s.height.mode === "limited") s.height.min = Math.min(v, s.height.max);
-    else { s.height.mode = "fixed"; s.height.value = v; }
+    const sz = s.size;
+    if (key === "w" || key === "h") {
+      const a = sz[key];
+      if (a.mode === "pct") a.pct = Math.min(100, Math.max(1, n));
+      else { a.mode = "px"; a.px = Math.min(2000, Math.max(40, n)); }
+      return;
+    }
+    sz[key] = Math.min(2000, Math.max(40, n));
   });
 }
 
@@ -2468,7 +2581,7 @@ document.addEventListener("keydown", (e) => {
   if (e.key !== "Escape") return;
   if (ui.picker) ACTIONS["picker-cancel"]();
   else if (ui.shadowPalette || ui.shadowEditor) ACTIONS["shadow-popup-cancel"]();
-  else if (ui.lineMenu || ui.fontMenu || ui.iconPicker) { ui.lineMenu = ui.fontMenu = ui.iconPicker = null; render(); }
+  else if (ui.lineMenu || ui.fontMenu || ui.iconPicker || ui.sizeMenu) { ui.lineMenu = ui.fontMenu = ui.iconPicker = ui.sizeMenu = null; render(); }
   else if (ui.presets) { ui.presets = false; render(); }
   else if (ui.heightMenu) { ui.heightMenu = false; render(); }
   else if (ui.menu) { ui.menu = null; render(); }
@@ -2480,10 +2593,10 @@ document.addEventListener("click", (e) => {
 }, true);
 
 // Попапы редакторов оформления: клик мимо закрывает (тень — с сохранением выбранного)
-function closeAppearancePopups() { ui.shadowPalette = ui.shadowEditor = ui.lineMenu = ui.fontMenu = ui.iconPicker = null; }
+function closeAppearancePopups() { ui.shadowPalette = ui.shadowEditor = ui.lineMenu = ui.fontMenu = ui.iconPicker = ui.sizeMenu = null; }
 document.addEventListener("click", (e) => {
-  const open = ui.shadowPalette || ui.shadowEditor || ui.lineMenu || ui.fontMenu || ui.iconPicker;
-  if (!open || e.target.closest(".shadow-palette, .shadow-editor, .line-menu, .font-menu, .icon-picker, .picker, [data-action=shadow-palette], [data-action=line-menu], [data-action=font-menu], [data-action=icon-picker]")) return;
+  const open = ui.shadowPalette || ui.shadowEditor || ui.lineMenu || ui.fontMenu || ui.iconPicker || ui.sizeMenu;
+  if (!open || e.target.closest(".shadow-palette, .shadow-editor, .line-menu, .font-menu, .icon-picker, .size-menu, .picker, [data-action=shadow-palette], [data-action=line-menu], [data-action=font-menu], [data-action=icon-picker], [data-action=size-menu]")) return;
   closeAppearancePopups();
   render();
 }, true);
