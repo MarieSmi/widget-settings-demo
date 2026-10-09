@@ -13,6 +13,8 @@
   --bg: #ffffff;                            /* Background/background-color */
   --bg-contrast: #f3f5f7;                   /* Background/contrast_background-color — подложка окна */
   --bg-pale: rgba(51, 51, 51, 0.05);        /* Background/Contrast/pale_color — плашки контента, кнопки-стрелки */
+  --bg-pale-hover: rgba(51, 51, 51, 0.1);   /* Background/Contrast/pale_hover_color — ховер кнопки-стрелки */
+  --bg-pale-active: rgba(51, 51, 51, 0.15); /* Background/Contrast/pale_active_color — нажатие кнопки-стрелки */
   --bg-hover: #f3f4f8;                      /* Background/hover_background-color */
   --success: #12a12c;                       /* Background/Contrast/success_color — кнопка ✓ */
 
@@ -33,6 +35,7 @@
   --border: #eaeaea;                        /* Border/border-color */
   --border-unaccented: #d2d6da;             /* Border/unaccented_border-color — обводка свотчей, подчёркивание полей */
   --border-info: #7b62f8;                   /* Border/info_border-color — рамка выделения виджета */
+  --border-hover: #d0d0d0;                  /* Border/hover_border-color — ховер чипс */
 
   --toolbar-bg: #eeebff;                    /* Background/Same/info_same_background-color */
   --toolbar-bg-active: #d4ccff;             /* Background/Same/info_active_same_background-color */
@@ -278,7 +281,9 @@ button:focus-visible { outline: 2px solid var(--border-info); outline-offset: 2p
 .w__title {
   margin: 0;
   font-size: var(--w-title-size, var(--fs-3xl));   /* стиль заголовка — меню «Шрифт» */
-  font-weight: var(--fw-bold);
+  font-weight: var(--w-title-weight, var(--fw-bold));   /* начертание — окно настройки стиля */
+  font-style: var(--w-title-style, normal);
+  text-decoration: var(--w-title-deco, none);
   line-height: 1.4;
   color: var(--w-title);
   white-space: nowrap;
@@ -515,7 +520,9 @@ button:focus-visible { outline: 2px solid var(--border-info); outline-offset: 2p
   color: var(--icon-label);
 }
 .btn-arrow svg { transform: rotate(180deg); }
-.btn-arrow:not([disabled]):hover { background: rgba(51, 51, 51, 0.15); }
+/* Состояния — Figma «Кнопки пролистывания» 3096:3224 (pale, filled, m) */
+.btn-arrow:not([disabled]):hover { background: var(--bg-pale-hover); }
+.btn-arrow:not([disabled]):active { background: var(--bg-pale-active); }
 .cloud > .btn-arrow { position: absolute; right: var(--sp-m); top: var(--sp-s); }
 
 /* Ряд свотчей «Фон / Заголовок / Маркер» */
@@ -546,13 +553,18 @@ button:focus-visible { outline: 2px solid var(--border-info); outline-offset: 2p
     var(--bg);
 }
 
+/* Крестик «убрать»: кнопка высотой со строку (24 px), глиф по центру — так ✕ стоит на одной линии
+   с кружком, баблом тени, переключателем и полями во всех строках, без ручных отступов */
 .swatch-clear {
   display: flex;
+  align-items: center;
+  justify-content: center;
   width: 16px;
-  height: 17px;
+  height: 24px;
   color: var(--icon-unaccented);
 }
 button.swatch-clear:hover { color: var(--icon-secondary); }
+.swatch-clear .ico { padding-bottom: 0; }   /* у .ico подъём на 1 px — глиф ✕ и так сидит выше центра */
 
 /* ---------- Экран «Стиль» ---------- */
 
@@ -593,7 +605,7 @@ button.swatch-clear:hover { color: var(--icon-secondary); }
   font-weight: var(--fw-bold);
 }
 .editor { display: flex; align-items: center; gap: 2px; }
-.editor--wide { gap: var(--sp-s); }
+.editor--wide { gap: var(--sp-xs); }   /* как у тени: подпись в 6 px от кружка, тексты строк Фон и Тень в одну колонку */
 .text-link-static { color: var(--text-link); white-space: nowrap; }
 
 
@@ -614,7 +626,8 @@ button.swatch-clear:hover { color: var(--icon-secondary); }
   color: var(--text-label-contrast);
 }
 .chip[disabled] { cursor: default; }
-.chip:not([disabled]):hover { color: var(--text); }
+/* Ховер (Figma 10408:107593): обводка 1 px внутрь, размер и цвет текста не меняются */
+.chip:not([disabled]):hover { box-shadow: inset 0 0 0 1px var(--border-hover); }
 
 /* Выпадашка «Заливка фоном» */
 .menu {
@@ -738,6 +751,9 @@ button.swatch-clear:hover { color: var(--icon-secondary); }
   color: var(--icon-secondary);
 }
 .side-switch .ico { font-size: 20px; }                      /* icon-size_st */
+/* Глифа EBCE нет в cbuc-icons24.ttf — берём его из cbuc-icons, там он есть */
+.side-switch .ico[data-i="padSides"] { font-family: "cbuc-icons"; font-size: 16px; }   /* родной размер этого шрифта */
+.side-switch .ico[data-i="radiusSwitch"] { font-family: "cbuc-icons"; font-size: 16px; }   /* 20 px из cbuc-icons24 — слишком крупно */
 .side-switch:hover { background: var(--bg-hover); }
 .side-switch[aria-pressed="true"] { background: var(--toolbar-bg); color: var(--icon-info); }
 .side-switch[aria-pressed="true"]:hover { background: #e1dbff; }   /* info_hover_same_background-color */
@@ -823,11 +839,13 @@ button.swatch-clear:hover { color: var(--icon-secondary); }
 
 /* Строки экрана «Стиль» с раскрываемым редактором */
 .form .row-editor { position: relative; display: flex; align-items: flex-start; gap: 4px; min-height: 24px; }
-.form .row-editor .swatch-clear { margin-top: 3.5px; }
 .form .row-editor--end { padding-right: 0; }
 
 /* Тень: свотч с половинкой цвета + значение (Бабл) */
-.shadow-bubble { display: flex; align-items: center; gap: var(--sp-xs); padding-right: var(--sp-m); border-radius: 12px; white-space: nowrap; }
+.shadow-bubble {
+  display: flex; align-items: center; gap: var(--sp-xs); padding-right: var(--sp-m); border-radius: 12px; white-space: nowrap;
+  background: var(--bubble-bg, none) 0 0 / 100% 100% no-repeat, var(--bg);   /* --bubble-bg — из bubbleBg() */
+}
 .half-swatch {
   display: block;
   position: relative;
@@ -983,9 +1001,38 @@ button.swatch-clear:hover { color: var(--icon-secondary); }
   text-align: left;
   white-space: nowrap;
 }
-.font-menu__item:hover:not([disabled]),
-.font-menu__item[aria-checked="true"] { background: #eff1f5; }        /* Background/active_background-color */
+.font-menu__item:hover:not([disabled]) { --item-bg: #f3f4f8; }       /* Background/hover_background-color */
+.font-menu__item[aria-checked="true"] { --item-bg: #eff1f5; }        /* Background/active_background-color */
+.font-menu__item { background: var(--item-bg, transparent); }
+/* Ховер строки (Figma 3908:642252): справа кнопка-стрелка 24 px в 8 px от края, перед ней 8 px перехода в фон строки */
+.font-menu__arrow {
+  position: absolute; top: 0; right: 0; bottom: 0;
+  display: none; align-items: center;
+  padding: 0 var(--sp-s);
+  border-radius: 0 var(--r-s) var(--r-s) 0;
+  background: linear-gradient(to right, transparent, var(--item-bg) var(--sp-s));
+}
+.font-menu__item:hover:not([disabled]) .font-menu__arrow { display: flex; }
 .font-menu__item--custom { font-size: var(--fs-m); font-weight: var(--fw-regular); letter-spacing: var(--tracking); cursor: default; }
+/* Окно настройки стиля заголовка (Figma 10404:99311): оформление окна настроек, 350 px, на месте меню «Шрифт» */
+.font-editor { position: absolute; z-index: 4; width: 350px; }
+.fe-cloud { gap: var(--sp-s); padding: var(--sp-s) var(--sp-m); }
+.fe-row { display: flex; align-items: center; gap: 20px; padding-top: 2px; }
+.fe-family { flex: 1; color: var(--text); }
+.fe-family .ico { position: absolute; right: 0; top: calc(50% - 8.5px); color: var(--icon-unaccented); }
+.fe-size { width: 40px; }
+.fe-row--deco { gap: var(--sp-l, 16px); padding-top: var(--sp-2xs); }
+.fe-group { display: flex; gap: var(--sp-xs); }
+.fe-toggle { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: var(--r-2xs); color: var(--icon-secondary); }
+/* В cbuc-icons24.ttf глифы B I U S жирные; тонкие, как в макете, — в cbuc-icons 16 px */
+.fe-toggle .ico { padding-bottom: 2px; font-family: "cbuc-icons"; font-size: 16px; }
+button.fe-toggle:hover { background: var(--bg-hover); }
+.fe-toggle[aria-pressed="true"] { background: #ebf4ff; }    /* Background/Same/secondary_same_background-color */
+.fe-sep { width: 1px; height: 16px; margin: 0 4px; background: var(--border); }
+/* Радио-меню (Заливка фоном, высота, величины): на ховере невыбранного пункта — пустая радиокнопка */
+/* Страница без <!DOCTYPE> (quirks mode): голый :hover там действует только на ссылки, поэтому button:hover */
+.radio-off { visibility: hidden; }
+button:hover > .radio-off { visibility: visible; }
 .font-menu__bullet { position: absolute; left: 8px; top: 50%; transform: translateY(-50%); color: #cc3d00; }
 
 /* Цвет тени: окно как у пикеров (.picker), в палитре — готовые тени (PropertyGrid 30654:47696) */
@@ -1051,7 +1098,7 @@ button.size-unit:hover { color: var(--text-link); }
 .size-menu {
   position: absolute;
   z-index: 4;
-  width: 198px;
+  width: 214px;   /* 198 + место под круглый ✕ в углу (как _closeButtonOffset в Figma), чтобы он не наезжал на «фиксированная (px)» */
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -1205,7 +1252,7 @@ button.size-unit:hover { color: var(--text-link); }
 
 .picker {
   position: absolute;
-  z-index: 3;
+  z-index: 5;   /* выше окна «Тень» (4): из него открывается пикер цвета тени */
   width: 366px;
   display: flex;
   flex-direction: column;
@@ -1277,13 +1324,8 @@ button.size-unit:hover { color: var(--text-link); }
   border-radius: 18px;
   background: var(--current, var(--bg));
 }
-/* «Нет цвета»: диагональ под 45°, как у кружка «нет фона» в палитре (а не из угла в угол вытянутой плашки) */
-.picker__current[data-none] {
-  background:
-    linear-gradient(135deg, transparent calc(50% - .5px), var(--border-unaccented) calc(50% - .5px),
-                    var(--border-unaccented) calc(50% + .5px), transparent calc(50% + .5px)),
-    var(--bg);
-}
+/* «Нет цвета» (Figma 16385:66625): пустая белая плашка; в поле HEX — подсказка #FFFFFF, прозрачность 0 % */
+.picker__current[data-none] { background: var(--bg); }
 .picker__fields { display: flex; align-items: center; gap: var(--sp-s); }
 
 /* Поля с подчёркиванием */
@@ -1310,6 +1352,10 @@ button.size-unit:hover { color: var(--text-link); }
 .ufield--format { width: 46px; }
 .ufield--format .ico { position: absolute; right: 0; top: calc(50% - 8.5px); color: var(--icon-unaccented); }
 .ufield--hex { width: 66px; }
+/* Подсказка пустого HEX: «#» цветом текста, цифры — серым (Icon/unaccented #CCC); пропадает при вводе */
+.hex-ph { position: absolute; left: 0; bottom: 3px; color: var(--text); pointer-events: none; }
+.hex-ph span { color: var(--icon-unaccented); }
+.ufield--hex input:not(:placeholder-shown) + .hex-ph { display: none; }
 .ufield--alpha { width: 24px; }
 .ufield--alpha input { text-align: right; }
 .picker__alpha { display: flex; align-items: flex-end; gap: var(--sp-2xs); }
@@ -1367,6 +1413,10 @@ button.size-unit:hover { color: var(--text-link); }
     <symbol id="i-menu-close" viewBox="0 0 32 32"><path d="M21.7917 20.875C21.9306 20.9861 22 21.1389 22 21.3333C22 21.5278 21.9306 21.6806 21.7917 21.7917C21.7361 21.875 21.6667 21.9306 21.5833 21.9583C21.5 21.9861 21.4167 22 21.3333 22C21.25 22 21.1667 21.9861 21.0833 21.9583C21 21.9306 20.9306 21.875 20.875 21.7917L16 16.9583L11.125 21.7917C11.0694 21.875 11 21.9306 10.9167 21.9583C10.8333 21.9861 10.75 22 10.6667 22C10.5833 22 10.5 21.9861 10.4167 21.9583C10.3333 21.9306 10.2639 21.875 10.2083 21.7917C10.0694 21.6806 10 21.5278 10 21.3333C10 21.1389 10.0694 20.9861 10.2083 20.875L15.0417 16L10.2083 11.125C10.0694 11.0139 10 10.8611 10 10.6667C10 10.4722 10.0694 10.3194 10.2083 10.2083C10.3194 10.0694 10.4722 10 10.6667 10C10.8611 10 11.0139 10.0694 11.125 10.2083L16 15.0417L20.875 10.2083C20.9861 10.0694 21.1389 10 21.3333 10C21.5278 10 21.6806 10.0694 21.7917 10.2083C21.9306 10.3194 22 10.4722 22 10.6667C22 10.8611 21.9306 11.0139 21.7917 11.125L16.9583 16L21.7917 20.875Z" fill="currentColor"/></symbol>
     <!-- Figma: маркер выбранного пункта меню (12×12) -->
     <symbol id="i-bullet" viewBox="0 0 12 12"><circle cx="6" cy="6" r="3" fill="currentColor"/></symbol>
+    <!-- Figma: _menu/Bricks/toggle, ховер невыбранного пункта (Default-components 18013:12953) -->
+    <symbol id="i-radio-hover" viewBox="0 0 12 12"><circle cx="6" cy="6" r="3.5" fill="#fff" stroke="#EAEAEA"/></symbol>
+    <!-- Figma: «По левому» в окне настройки стиля (10404:99374, Иконки 24) -->
+    <symbol id="i-align-left" viewBox="0 0 24 24"><path d="M3.5 6C3.22386 6 3 6.22386 3 6.5C3 6.77614 3.22386 7 3.5 7H20.5C20.7761 7 21 6.77614 21 6.5C21 6.22386 20.7761 6 20.5 6H3.5Z" fill="#656C87"/><path d="M3.5 10C3.22386 10 3 10.2239 3 10.5C3 10.7761 3.22386 11 3.5 11H14.5C14.7761 11 15 10.7761 15 10.5C15 10.2239 14.7761 10 14.5 10H3.5Z" fill="#656C87"/><path d="M3 14.5C3 14.2239 3.22386 14 3.5 14H20.5C20.7761 14 21 14.2239 21 14.5C21 14.7761 20.7761 15 20.5 15H3.5C3.22386 15 3 14.7761 3 14.5Z" fill="#656C87"/><path d="M3.5 18C3.22386 18 3 18.2239 3 18.5C3 18.7761 3.22386 19 3.5 19H14.5C14.7761 19 15 18.7761 15 18.5C15 18.2239 14.7761 18 14.5 18H3.5Z" fill="#656C87"/></symbol>
 
     <!-- Figma PropertyGrid: уголок редактора скруглений (radius11/21, 16×16, обводка 2) -->
     <symbol id="i-corner" viewBox="0 0 16 16"><path d="M15 1H7C3.68629 1 1 3.68629 1 7V15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
@@ -1430,6 +1480,11 @@ Object.assign(ICONS, {
   plus:         "",   // выбор тени: «+» — открыть окно «Тень» (16 px)
   backArrow:    "",   // кнопка «назад» в шапке подэкрана (16 px)
   radiusSwitch: "",   // скругления: переключатель «по углам» (24 px)
+  // Окно настройки стиля (10404:99311): начертание, cbuc-icons24
+  fontBold:      "",
+  fontItalic:    "",
+  fontUnderline: "",
+  fontStrike:    "",
 });
 
 // Проставляет глиф во все <i class="ico" data-i="…"> внутри root
@@ -1452,6 +1507,8 @@ const PALETTES = {
   border: [null, "#a39c97", "#000000", "#999999", "#8991a9", "#2562aa", "#5a49ab", "#c2140a", "#e6a119", "#298e3c"],
   // Иконка: палитра текста, по умолчанию #656C87 (icon/secondary)
   icon: [null, "#656c87", "#000000", "#999999", "#8991a9", "#2562aa", "#5a49ab", "#cc3d00", "#c2140a", "#298e3c"],
+  // Цвет тени (из окна «Тень»): палитра текста без «нет цвета» — тень без цвета убирается ✕ в строке
+  shadow: ["#000000", "#999999", "#8991a9", "#2562aa", "#5a49ab", "#cc3d00", "#c2140a", "#e6a119", "#298e3c"],
 };
 
 // #rrggbb + непрозрачность 0–100 → rgba()
@@ -1495,6 +1552,7 @@ const DEFAULT_STATE = {
   margin:  { top: 0, right: 0, bottom: 0, left: 0, split: false },       // внешние
   hideEmpty: true,                // «Скрывать без данных»
   font: "h4",                     // стиль заголовка: h1…h6 (Figma 10404:99461)
+  fontStyles: {},                 // правки стилей из окна «настройка стиля»: { h4: { size, bold, italic, underline, strike } }
   // Иконка заголовка (Figma 10501:47174): глиф cbuc-icons24, размер, цвет
   icon: { on: false, glyph: null, size: 24, color: "#656c87", opacity: 100 },
   // Редакторы оформления (Figma PropertyGrid, раздел «Оформление» 23882:236259).
@@ -1507,8 +1565,8 @@ const DEFAULT_STATE = {
 const CELL = { w: 557, h: 280 };
 
 // Цвет части с учётом прозрачности; null — «нет цвета»
-function partColor(key) {
-  const { color, opacity } = state[key];
+function partColor(key, part = state[key]) {
+  const { color, opacity } = part;
   if (!color) return null;
   return key === "background" ? backgroundFill(color, opacity) : rgba(color, opacity);
 }
@@ -1540,6 +1598,9 @@ const FONTS = {
   h5: { label: "Заголовок 5", short: "H5", size: 16 },
   h6: { label: "Заголовок 6", short: "H6", size: 14 },
 };
+// Стиль с правками из окна настройки (10404:99311): размер и начертание; по умолчанию — Semi Bold без украшений
+const FONT_DEFAULT = { bold: true, italic: false, underline: false, strike: false };
+const fontStyle = (key) => ({ size: FONTS[key].size, ...FONT_DEFAULT, ...state.fontStyles[key] });
 
 let state = structuredClone(DEFAULT_STATE);
 
@@ -1585,7 +1646,11 @@ function renderWidget() {
   w.style.setProperty("--w-fill", partColor("background") || "transparent");
 
   wTitle.textContent = state.name;
-  w.style.setProperty("--w-title-size", FONTS[state.font].size + "px");
+  const fs = fontStyle(state.font);
+  w.style.setProperty("--w-title-size", fs.size + "px");
+  w.style.setProperty("--w-title-weight", fs.bold ? "var(--fw-bold)" : "var(--fw-regular)");
+  w.style.setProperty("--w-title-style", fs.italic ? "italic" : "normal");
+  w.style.setProperty("--w-title-deco", [fs.underline && "underline", fs.strike && "line-through"].filter(Boolean).join(" ") || "none");
   // Иконка перед заголовком (10501:51036): глиф, размер, цвет
   const ic = state.icon;
   const iconOn = ic.on && ic.glyph;
@@ -1653,6 +1718,11 @@ const toolbarGear = document.querySelector(".toolbar__item--active");
 let ui = { open: true, screen: "main", menu: null, picker: null };
 
 const arrowRight = `<svg class="icon" width="16" height="16"><use href="#i-arrow-back"/></svg>`;
+// Точка выбора пункта радио-меню: у выбранного — оранжевая, у остальных — пустая радиокнопка,
+// видимая только на ховере строки (.radio-off в CSS). cls — класс svg конкретного меню
+const radioBullet = (cls, checked) => checked
+  ? `<svg class="${cls}" width="12" height="12"><use href="#i-bullet"/></svg>`
+  : `<svg class="${cls} radio-off" width="12" height="12"><use href="#i-radio-hover"/></svg>`;
 
 const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
 
@@ -1784,6 +1854,12 @@ function cornerBox() {
 const shadowText = (s) => `${s.color.toUpperCase()}, ${+(s.opacity / 100).toFixed(2)}`;
 const halfSwatch = (color, opacity, cls = "") =>
   `<span class="half-swatch ${cls}" style="--hs-color:${color};--hs-tint:${rgba(color, Math.max(opacity, 14))}"></span>`;
+// Подложка «Бабла» (PropertyGrid 23716:135002): белый + радиальный градиент цвета тени, непрозрачность 0.15
+const bubbleBg = (color) =>
+  `--bubble-bg:url(&quot;data:image/svg+xml;utf8,<svg viewBox='0 0 104 24' xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='none'>`
+  + `<rect width='100%' height='100%' fill='url(%23g)' opacity='0.15'/><defs><radialGradient id='g' gradientUnits='userSpaceOnUse' cx='0' cy='0' r='10' `
+  + `gradientTransform='matrix(8.9589 5.8879 13.344 -3.9987 26 -3.6264)'><stop stop-color='${rgba(color, 0)}' offset='0'/>`
+  + `<stop stop-color='${rgba(color)}' offset='1'/></radialGradient></defs></svg>&quot;)`;
 
 // Готовые тени в палитре (30654:47696): цвет + прозрачность
 const SHADOW_PRESETS = [
@@ -1797,7 +1873,7 @@ function shadowRowHTML() {
   return `
     <span class="label">Тень</span>
     <span class="row-editor">
-      <button class="shadow-bubble" data-action="shadow-palette" aria-label="Тень: выбрать">${halfSwatch(s.color, s.opacity)}${shadowText(s)}</button>
+      <button class="shadow-bubble" style="${bubbleBg(s.color)}" data-action="shadow-palette" aria-label="Тень: выбрать">${halfSwatch(s.color, s.opacity)}${shadowText(s)}</button>
       <button class="swatch-clear" data-action="toggle" data-key="shadow" aria-label="Тень: убрать"><i class="ico ico--s" data-i="close"></i></button>
     </span>`;
 }
@@ -1904,7 +1980,7 @@ function shadowEditorHTML() {
       </header>
       <div class="se-body"><div class="se-cloud">
         <div class="se-row"><span class="label">Цвет</span>
-          <button class="shadow-bubble" data-action="shadow-palette" aria-label="Цвет тени">${halfSwatch(s.color, s.opacity)}${shadowText(s)}</button></div>
+          <button class="shadow-bubble" style="${bubbleBg(s.color)}" data-action="swatch" data-key="shadow" aria-label="Цвет тени">${halfSwatch(s.color, s.opacity)}${shadowText(s)}</button></div>
         ${slider("x", "X")}${slider("y", "Y")}${slider("blur", "Блюр")}${slider("spread", "Размах")}
       </div></div>
     </div>`;
@@ -1971,11 +2047,49 @@ function fontMenuHTML() {
   return `
     <div class="font-menu" style="left:${x}px;top:${y}px" role="menu" aria-label="Стиль заголовка">
       ${Object.entries(FONTS).map(([k, f]) => `
-        <button class="font-menu__item" role="menuitemradio" aria-checked="${state.font === k}" data-action="font" data-font="${k}" style="font-size:${f.size}px">
+        <button class="font-menu__item" role="menuitemradio" aria-checked="${state.font === k}" data-action="font" data-font="${k}" style="font-size:${fontStyle(k).size}px">
           ${state.font === k ? `<svg class="font-menu__bullet" width="12" height="12"><use href="#i-bullet"/></svg>` : ""}${f.label}
+          <span class="font-menu__arrow"><span class="btn-arrow" data-action="font-style" data-font="${k}" role="button" aria-label="${f.label}: настроить">${arrowRight}</span></span>
         </button>`).join("")}
-      <button class="font-menu__item font-menu__item--custom" disabled>Свой стиль</button>
+      <button class="font-menu__item font-menu__item--custom" aria-disabled="true">Свой стиль<span class="font-menu__arrow" aria-hidden="true"><span class="btn-arrow">${arrowRight}</span></span></button>
       <button class="presets__close" data-action="font-menu-close" aria-label="Закрыть"><svg width="12" height="12"><use href="#i-popup-close"/></svg></button>
+    </div>`;
+}
+
+// Окно настройки стиля заголовка (10404:99311) — открывается стрелкой в строке меню «Шрифт» на его месте.
+// Правки копятся в draft и попадают на виджет по ✓
+const FONT_TOGGLES = [["bold", "fontBold", "Жирный"], ["italic", "fontItalic", "Курсив"],
+                      ["underline", "fontUnderline", "Подчёркнутый"], ["strike", "fontStrike", "Зачёркнутый"]];
+function fontEditorHTML() {
+  const { x, y, key, draft: d } = ui.fontEditor;
+  const atDefault = JSON.stringify(d) === JSON.stringify({ size: FONTS[key].size, ...FONT_DEFAULT });
+  return `
+    <div class="win font-editor" style="left:${x}px;top:${y}px" role="dialog" aria-label="Настройка стиля">
+      <header class="win__head">
+        <div class="win__title">
+          <button class="btn-back" data-action="font-editor-back" aria-label="Назад к стилям"><i class="ico ico--s" data-i="backArrow"></i></button>
+          <h3>${FONTS[key].label}</h3>
+        </div>
+        <div class="win__cmds">
+          <button class="btn-icon" data-action="font-editor-reset" ${atDefault ? "data-idle" : ""} aria-label="Сбросить стиль"><i class="ico" data-i="reset"></i></button>
+          <button class="btn-apply" data-action="font-editor-apply" aria-label="Применить"><i class="ico ico--s" data-i="check"></i></button>
+          <button class="btn-icon" data-action="font-editor-close" aria-label="Закрыть"><i class="ico" data-i="close"></i></button>
+        </div>
+      </header>
+      <div class="cloud fe-cloud">
+        <div class="fe-row">
+          <span class="ufield fe-family">Inter<i class="ico ico--s" data-i="formatArrow"></i></span>
+          <label class="ufield fe-size"><input id="fe-size" value="${d.size}" inputmode="numeric" maxlength="2" aria-label="Размер шрифта"></label>
+        </div>
+        <div class="fe-row fe-row--deco">
+          <span class="fe-group">
+            ${FONT_TOGGLES.map(([p, glyph, label]) =>
+              `<button class="fe-toggle" data-action="font-editor-toggle" data-prop="${p}" aria-pressed="${d[p]}" aria-label="${label}"><i class="ico" data-i="${glyph}"></i></button>`).join("")}
+          </span>
+          <span class="fe-sep"></span>
+          <span class="fe-toggle" aria-label="По левому краю"><svg width="24" height="24"><use href="#i-align-left"/></svg></span>
+        </div>
+      </div>
     </div>`;
 }
 
@@ -2010,7 +2124,7 @@ function styleScreenHTML() {
          <span class="label label--strong">Заголовок</span>
          <span class="editor">${swatchEditor("title", "Заголовок", true)}</span>
          <span class="label">Шрифт</span>
-         <span><button class="link" data-action="font-menu" aria-haspopup="menu">${FONTS[state.font].short} Inter · ${FONTS[state.font].size}</button></span>
+         <span><button class="link" data-action="font-menu" aria-haspopup="menu">${FONTS[state.font].short} Inter · ${fontStyle(state.font).size}</button></span>
          ${state.icon.on && state.icon.glyph ? iconRowHTML() : ""}
          ${markerOn ? markerRow : ""}
        </div></div>`
@@ -2035,7 +2149,7 @@ function styleScreenHTML() {
       </div>
       ${["widget", "content"].map((f) => `
         <button class="menu__item" role="menuitemradio" aria-checked="${background.fill === f}" data-action="fill" data-fill="${f}">
-          <svg class="menu__bullet">${background.fill === f ? `<use href="#i-bullet"/>` : ""}</svg>
+          ${radioBullet("menu__bullet", background.fill === f)}
           ${f === "widget" ? "На всем виджете" : "Только на контенте"}
         </button>`).join("")}
     </div>` : "";
@@ -2086,7 +2200,7 @@ function heightMenuHTML() {
     <div class="hmenu" role="menu" aria-label="Высота">
       ${Object.entries(HEIGHT_MODES).map(([k, m]) => `
         <button class="hmenu__item" role="menuitemradio" aria-checked="${cur === k}" data-action="height-mode" data-mode="${k}">
-          <svg class="hmenu__bullet" width="12" height="12">${cur === k ? `<use href="#i-bullet"/>` : ""}</svg>
+          ${radioBullet("hmenu__bullet", cur === k)}
           ${m.item}
         </button>`).join("")}
       <button class="presets__close" data-action="height-menu-close" aria-label="Закрыть"><svg width="12" height="12"><use href="#i-popup-close"/></svg></button>
@@ -2099,16 +2213,18 @@ const EDGE_ITEMS = { minW: "Min ширину", maxW: "Max ширину", minH: "
 function sizeMenuHTML() {
   const { x, y, key } = ui.sizeMenu;
   const cur = state.size[key].mode;
-  const free = Object.entries(EDGE_ITEMS).filter(([k]) => state.size[k] == null);
+  // только свои оси: у ширины — Min/Max ширину, у высоты — Min/Max высоту
+  const free = Object.entries(EDGE_ITEMS).filter(([k]) => k.endsWith(key.toUpperCase()) && state.size[k] == null);
   return `
     <div class="size-menu" style="left:${x}px;top:${y}px" role="menu" aria-label="Величина">
       ${Object.entries(SIZE_MODES).map(([m, label]) => `
         <button class="size-menu__item" role="menuitemradio" aria-checked="${cur === m}" data-action="size-mode" data-key="${key}" data-mode="${m}">
-          <svg class="size-menu__bullet" width="12" height="12">${cur === m ? `<use href="#i-bullet"/>` : ""}</svg>${label}
+          ${radioBullet("size-menu__bullet", cur === m)}${label}
         </button>`).join("")}
       ${free.length ? `
         <div class="size-menu__group">Добавить</div>
         ${free.map(([k, label]) => `<button class="size-menu__item size-menu__item--edge" data-action="edge-add" data-key="${k}">${label}</button>`).join("")}` : ""}
+      <button class="presets__close" data-action="size-menu-close" aria-label="Закрыть"><svg width="12" height="12"><use href="#i-popup-close"/></svg></button>
     </div>`;
 }
 
@@ -2203,9 +2319,9 @@ function presetsHTML() {
 
 // ---------- Пикер цвета ----------
 
-const PICKER_TITLES = { title: "Текст", marker: "Маркер", background: "Фон", border: "Границы", icon: "Иконка" };
+const PICKER_TITLES = { title: "Текст", marker: "Маркер", background: "Фон", border: "Границы", icon: "Иконка", shadow: "Цвет тени" };
 // Сдвиг пикера относительно свотча — как в макете (11931:124361 / 124382 / 124403)
-const PICKER_OFFSET = { background: [-19, -68], title: [-16, -68], marker: [-30, -68], border: [-16, -68], icon: [-16, 30] };
+const PICKER_OFFSET = { background: [-19, -68], title: [-16, -68], marker: [-30, -68], border: [-16, -68], icon: [-16, 30], shadow: [-16, -68] };
 
 // Скрытый нативный выбор цвета для «Другой цвет»; живёт вне перерисовываемого окна
 const nativeColor = Object.assign(document.createElement("input"), { type: "color", tabIndex: -1 });
@@ -2213,18 +2329,17 @@ nativeColor.style.cssText = "position:absolute;width:0;height:0;opacity:0;pointe
 nativeColor.setAttribute("aria-hidden", "true");
 document.body.append(nativeColor);
 nativeColor.addEventListener("input", () => {
-  if (ui.picker) pickColor(ui.picker.key, nativeColor.value);
+  if (ui.picker) pickColor(nativeColor.value);
   else if (ui.shadowPalette) setState((s) => { s.shadow.color = nativeColor.value; });
 });
 
 function pickerHTML() {
-  const { key, x, y } = ui.picker;
-  const part = state[key];
+  const { key, x, y, draft: part } = ui.picker;   // пикер показывает черновик, виджет — применённый цвет
   const def = DEFAULT_STATE[key];
-  const on = isOn(key);   // выключенный элемент показываем как «нет цвета», даже если цвет сохранён
+  const on = part.on && !!part.color;   // выключенный элемент показываем как «нет цвета», даже если цвет сохранён
   const atDefault = on && part.color === def.color && part.opacity === def.opacity;
   const hex = on ? part.color.replace("#", "").toUpperCase() : "";
-  const current = on ? partColor(key) : null;
+  const current = on ? partColor(key, part) : null;
   const isBg = key === "background";
 
   return `
@@ -2251,8 +2366,8 @@ function pickerHTML() {
           <span class="picker__fields">
             <span class="ufield ufield--format">HEX<i class="ico ico--s" data-i="formatArrow"></i></span>
             <span class="picker__alpha">
-              <label class="ufield ufield--hex"><input id="picker-hex" value="${hex ? "#" + hex : ""}" maxlength="7" spellcheck="false" aria-label="Код цвета"></label>
-              <label class="ufield ufield--alpha"><input id="picker-alpha" value="${part.opacity}" inputmode="numeric" maxlength="3" aria-label="Непрозрачность, %"></label>
+              <label class="ufield ufield--hex"><input id="picker-hex" value="${hex ? "#" + hex : ""}" placeholder=" " maxlength="7" spellcheck="false" aria-label="Код цвета"><span class="hex-ph" aria-hidden="true">#<span>FFFFFF</span></span></label>
+              <label class="ufield ufield--alpha"><input id="picker-alpha" value="${on ? part.opacity : 0}" inputmode="numeric" maxlength="3" aria-label="Непрозрачность, %"></label>
               <span class="pct">%</span>
             </span>
           </span>
@@ -2273,11 +2388,15 @@ function pickerHTML() {
     </div>`;
 }
 
-// Выбор цвета применяется к виджету сразу; null — «нет цвета»
-function pickColor(key, color) {
-  setState((s) => {
-    s[key].color = color || null;
-    if (color) s[key].on = true;
+// Выбор цвета меняет черновик пикера; на виджет он попадает только по ✓. null — «нет цвета»
+function editDraft(mutator) {
+  mutator(ui.picker.draft);
+  render();
+}
+function pickColor(color) {
+  editDraft((d) => {
+    d.color = color || null;
+    if (color) d.on = true;
   });
 }
 
@@ -2291,7 +2410,7 @@ function openPicker(el) {
     key,
     x: Math.round(sw.left - slot.left + dx),
     y: Math.round(sw.top - slot.top + dy),
-    before: structuredClone(state[key]),   // для отмены по ✕
+    draft: structuredClone(state[key]),   // правки в пикере; ✓ переносит их в state, всё остальное отбрасывает
   };
   render();
 }
@@ -2317,6 +2436,7 @@ function renderSettings() {
       + (ui.shadowEditor ? shadowEditorHTML() : "")
       + (ui.lineMenu ? lineMenuHTML() : "")
       + (ui.fontMenu ? fontMenuHTML() : "")
+      + (ui.fontEditor ? fontEditorHTML() : "")
       + (ui.iconPicker ? iconPickerHTML() : "");
     settingsSlot.dataset.screen = ui.screen;
   }
@@ -2333,7 +2453,10 @@ const ACTIONS = {
   preset: (el) => { ui.presets = false; applyStyle(el.dataset.style); },
   menu: (el) => { ui.menu = el.dataset.menu || null; render(); },
   fill: (el) => { ui.menu = null; setState((s) => { s.background.fill = el.dataset.fill; }); },
-  "title-on": () => setState((s) => { s.title.on = true; s.title.color ||= DEFAULT_STATE.title.color; }),
+  // Заголовок и маркер убираются и возвращаются вместе
+  "title-on": () => setState((s) => {
+    for (const k of ["title", "marker"]) { s[k].on = true; s[k].color ||= DEFAULT_STATE[k].color; }
+  }),
   "marker-on": () => setState((s) => { s.marker.on = true; s.marker.color ||= DEFAULT_STATE.marker.color; }),
   toggle: (el) => { closeAppearancePopups(); setState((s) => { s[el.dataset.key].on = !s[el.dataset.key].on; }); },   // тень, скругления, границы
 
@@ -2376,10 +2499,27 @@ const ACTIONS = {
   // Шрифт заголовка: меню открывается вниз от строки — первый пункт (45 px) на уровне ссылки
   "font-menu": (el) => {
     const above = 8 + 45 / 2;   // отступ меню + половина первого пункта
-    ui.fontMenu = ui.fontMenu ? null : popupPos(el, -30, Math.round(el.getBoundingClientRect().height / 2 - above));
+    ui.fontMenu = ui.fontMenu || ui.fontEditor ? null : popupPos(el, -30, Math.round(el.getBoundingClientRect().height / 2 - above));
+    ui.fontEditor = null;
     render();
   },
   "font-menu-close": () => { ui.fontMenu = null; render(); },
+  // Окно настройки стиля: стрелка в строке меню заменяет меню окном, «‹» возвращает меню
+  "font-style": (el) => {
+    const { x, y } = ui.fontMenu;
+    ui.fontMenu = null;
+    ui.fontEditor = { x, y, key: el.dataset.font, draft: fontStyle(el.dataset.font) };
+    render();
+  },
+  "font-editor-back": () => { const { x, y } = ui.fontEditor; ui.fontEditor = null; ui.fontMenu = { x, y }; render(); },
+  "font-editor-close": () => { ui.fontEditor = null; render(); },
+  "font-editor-reset": () => { ui.fontEditor.draft = { size: FONTS[ui.fontEditor.key].size, ...FONT_DEFAULT }; render(); },
+  "font-editor-toggle": (el) => { const d = ui.fontEditor.draft; d[el.dataset.prop] = !d[el.dataset.prop]; render(); },
+  "font-editor-apply": () => {
+    const { key, draft } = ui.fontEditor;
+    ui.fontEditor = null;
+    setState((s) => { s.font = key; s.fontStyles[key] = draft; });
+  },
   font: (el) => { ui.fontMenu = null; setState((s) => { s.font = el.dataset.font; }); },
 
   // Иконка заголовка
@@ -2394,10 +2534,8 @@ const ACTIONS = {
   "icon-pick": (el) => {
     const glyph = el.dataset.glyph;
     recentIcons = [glyph, ...recentIcons.filter((x) => x !== glyph)].slice(0, 8);   // «недавние»
-    const scroll = settingsSlot.querySelector("#ip-scroll")?.scrollTop ?? 0;
+    ui.iconPicker = null;   // выбор иконки закрывает окно
     setState((s) => { s.icon.on = true; s.icon.glyph = glyph; });
-    const sc = settingsSlot.querySelector("#ip-scroll");
-    if (sc) sc.scrollTop = scroll;   // окно остаётся открытым — иконки можно перебирать
   },
   "icon-clear": () => { ui.iconPicker = null; setState((s) => { s.icon.on = false; }); },
   "icon-section": (el) => {
@@ -2411,7 +2549,13 @@ const ACTIONS = {
   // Границы: тип линии
   "line-menu": (el) => { ui.lineMenu = ui.lineMenu ? null : popupPos(el, -12, 28); render(); },
   "line-style": (el) => { ui.lineMenu = null; setState((s) => { s.border.style = el.dataset.style; }); },
-  clear: (el) => { ui.picker = null; setState((s) => { s[el.dataset.key].on = false; }); },
+  clear: (el) => {
+    ui.picker = null;
+    setState((s) => {
+      s[el.dataset.key].on = false;
+      if (el.dataset.key === "title") s.marker.on = false;   // без заголовка маркер тоже убираем
+    });
+  },
   swatch: (el) => {
     // Клик по кружку — и цветному, и пустому — открывает пикер; выбор цвета включает элемент
     const key = el.dataset.key;
@@ -2444,6 +2588,7 @@ const ACTIONS = {
   "edge-remove": (el) => setState((s) => { s.size[el.dataset.key] = null; }),
   "height-menu": () => { ui.picker = null; ui.menu = null; ui.presets = false; ui.heightMenu = true; render(); },
   "height-menu-close": () => { ui.heightMenu = false; render(); },
+  "size-menu-close": () => { ui.sizeMenu = null; render(); },
   // Меню высоты главного экрана → модель размеров
   "height-mode": (el) => {
     ui.heightMenu = false;
@@ -2460,29 +2605,34 @@ const ACTIONS = {
   "hide-empty": () => setState((s) => { s.hideEmpty = !s.hideEmpty; }),
 
   // Пикер
-  pick: (el) => pickColor(ui.picker.key, el.dataset.color),
-  "picker-apply": () => { ui.picker = null; render(); },
-  "picker-cancel": () => {
-    const { key, before } = ui.picker;
+  pick: (el) => pickColor(el.dataset.color),
+  "picker-apply": () => {
+    const { key, draft } = ui.picker;
     ui.picker = null;
-    setState((s) => { s[key] = before; });
-  },
-  "picker-reset": () => {
-    const key = ui.picker.key;
     setState((s) => {
-      s[key].color = DEFAULT_STATE[key].color;
-      s[key].opacity = DEFAULT_STATE[key].opacity;
-      s[key].on = true;
+      s[key] = draft;
+      if (key === "title" && !(draft.on && draft.color)) s.marker.on = false;   // «нет цвета» у заголовка убирает и маркер
     });
   },
+  "picker-cancel": () => { ui.picker = null; render(); },
+  "picker-reset": () => {
+    const def = DEFAULT_STATE[ui.picker.key];
+    editDraft((d) => { d.color = def.color; d.opacity = def.opacity; d.on = true; });
+  },
   "picker-native": () => {
-    nativeColor.value = state[ui.picker.key].color || "#000000";
+    nativeColor.value = ui.picker.draft.color || "#000000";
     nativeColor.showPicker ? nativeColor.showPicker() : nativeColor.click();
   },
 };
 
 // Поля HEX и прозрачности: применяем по Enter или при уходе с поля
 function commitPickerField(input) {
+  // Окно настройки стиля: размер шрифта 8–64
+  if (input.id === "fe-size") {
+    const n = Math.round(Number(input.value));
+    if (Number.isFinite(n) && n > 0) ui.fontEditor.draft.size = Math.min(64, Math.max(8, n));
+    return render();
+  }
   // Окно цвета тени: те же поля HEX и непрозрачности
   if (input.id === "shadow-hex" || input.id === "shadow-alpha") {
     if (input.id === "shadow-hex") {
@@ -2498,12 +2648,12 @@ function commitPickerField(input) {
   if (input.id === "picker-hex") {
     let v = input.value.trim().replace(/^#?/, "#").toLowerCase();
     if (/^#[0-9a-f]{3}$/.test(v)) v = "#" + [...v.slice(1)].map((c) => c + c).join("");
-    if (/^#[0-9a-f]{6}$/.test(v)) pickColor(key, v);
+    if (/^#[0-9a-f]{6}$/.test(v)) pickColor(v);
     else render();   // неверный код — вернуть прежнее значение
   }
   if (input.id === "picker-alpha") {
     const n = Math.round(Number(input.value));
-    if (Number.isFinite(n)) setState((s) => { s[key].opacity = Math.min(100, Math.max(0, n)); });
+    if (Number.isFinite(n)) editDraft((d) => { d.opacity = Math.min(100, Math.max(0, n)); });
     else render();
   }
 }
@@ -2561,7 +2711,7 @@ settingsSlot.addEventListener("change", (e) => {
   else commitPickerField(e.target);
 });
 settingsSlot.addEventListener("keydown", (e) => {
-  if (e.key === "Enter" && (e.target.closest(".picker") || e.target.dataset.field)) e.target.blur();
+  if (e.key === "Enter" && (e.target.closest(".picker, .font-editor") || e.target.dataset.field)) e.target.blur();
 });
 
 // Ползунки окна «Тень»: виджет меняется во время перетаскивания, окно не перерисовываем
@@ -2581,22 +2731,22 @@ document.addEventListener("keydown", (e) => {
   if (e.key !== "Escape") return;
   if (ui.picker) ACTIONS["picker-cancel"]();
   else if (ui.shadowPalette || ui.shadowEditor) ACTIONS["shadow-popup-cancel"]();
-  else if (ui.lineMenu || ui.fontMenu || ui.iconPicker || ui.sizeMenu) { ui.lineMenu = ui.fontMenu = ui.iconPicker = ui.sizeMenu = null; render(); }
+  else if (ui.lineMenu || ui.fontMenu || ui.fontEditor || ui.iconPicker || ui.sizeMenu) { ui.lineMenu = ui.fontMenu = ui.fontEditor = ui.iconPicker = ui.sizeMenu = null; render(); }
   else if (ui.presets) { ui.presets = false; render(); }
   else if (ui.heightMenu) { ui.heightMenu = false; render(); }
   else if (ui.menu) { ui.menu = null; render(); }
 });
 
-// Клик мимо открытого пикера подтверждает выбор и закрывает его
+// Клик мимо открытого пикера закрывает его без применения (цвет применяется только по ✓)
 document.addEventListener("click", (e) => {
-  if (ui.picker && !e.target.closest(".picker, .swatch")) { ui.picker = null; render(); }
+  if (ui.picker && !e.target.closest(".picker, [data-action=swatch]")) { ui.picker = null; render(); }
 }, true);
 
 // Попапы редакторов оформления: клик мимо закрывает (тень — с сохранением выбранного)
-function closeAppearancePopups() { ui.shadowPalette = ui.shadowEditor = ui.lineMenu = ui.fontMenu = ui.iconPicker = ui.sizeMenu = null; }
+function closeAppearancePopups() { ui.shadowPalette = ui.shadowEditor = ui.lineMenu = ui.fontMenu = ui.fontEditor = ui.iconPicker = ui.sizeMenu = null; }
 document.addEventListener("click", (e) => {
-  const open = ui.shadowPalette || ui.shadowEditor || ui.lineMenu || ui.fontMenu || ui.iconPicker || ui.sizeMenu;
-  if (!open || e.target.closest(".shadow-palette, .shadow-editor, .line-menu, .font-menu, .icon-picker, .size-menu, .picker, [data-action=shadow-palette], [data-action=line-menu], [data-action=font-menu], [data-action=icon-picker], [data-action=size-menu]")) return;
+  const open = ui.shadowPalette || ui.shadowEditor || ui.lineMenu || ui.fontMenu || ui.fontEditor || ui.iconPicker || ui.sizeMenu;
+  if (!open || e.target.closest(".shadow-palette, .shadow-editor, .line-menu, .font-menu, .font-editor, .icon-picker, .size-menu, .picker, [data-action=shadow-palette], [data-action=line-menu], [data-action=font-menu], [data-action=icon-picker], [data-action=size-menu]")) return;
   closeAppearancePopups();
   render();
 }, true);
