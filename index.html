@@ -252,17 +252,18 @@ button:focus-visible { outline: 2px solid var(--border-info); outline-offset: 2p
   --w-fill: var(--bg);
   --w-title: var(--text);
   --w-marker: var(--brand);
-  --pad-h: 12px;            /* внутренние отступы — экран «Размер» */
-  --pad-v: 12px;
+  --pad-t: 12px; --pad-r: 12px; --pad-b: 12px; --pad-l: 12px;   /* внутренние отступы — экран «Размер» */
+  --w-radius: 8px;                                            /* скругления по углам */
+  --w-shadow: var(--shadow-widget);                           /* тень */
   position: relative;
   flex: 1;
   display: flex;
   flex-direction: column;
   gap: 16px;
-  padding: 0 var(--pad-h) var(--pad-v);
+  padding: 0 var(--pad-r) var(--pad-b) var(--pad-l);
   background: var(--w-fill);
-  border-radius: var(--r-s);
-  box-shadow: var(--shadow-widget);
+  border-radius: var(--w-radius);
+  box-shadow: var(--w-shadow);
   overflow: hidden;
 }
 
@@ -270,8 +271,8 @@ button:focus-visible { outline: 2px solid var(--border-info); outline-offset: 2p
   display: flex;
   align-items: center;
   height: 24px;
-  margin-top: var(--pad-v);
-  padding-right: var(--pad-h);
+  margin-top: var(--pad-t);
+  padding-right: var(--pad-r);
   flex: none;
 }
 .w__title {
@@ -289,7 +290,7 @@ button:focus-visible { outline: 2px solid var(--border-info); outline-offset: 2p
 .w__marker {
   position: absolute;
   left: 0;
-  top: calc(var(--pad-v) + 1px);
+  top: calc(var(--pad-t) + 1px);
   width: 4px;
   height: 22px;
   color: var(--w-marker);
@@ -320,7 +321,7 @@ button:focus-visible { outline: 2px solid var(--border-info); outline-offset: 2p
 
 /* Заголовок выключен: контент поднимается к верхнему отступу */
 .w[data-title="off"] .w__header { display: none; }
-.w[data-title="off"] .w__content { padding-top: calc(var(--pad-v) + 2px); }   /* contentDashWidget сдвинут на 2 px */
+.w[data-title="off"] .w__content { padding-top: calc(var(--pad-t) + 2px); }   /* contentDashWidget сдвинут на 2 px */
 
 .w[data-marker="off"] .w__marker { display: none; }
 
@@ -332,21 +333,30 @@ button:focus-visible { outline: 2px solid var(--border-info); outline-offset: 2p
   box-shadow: none;
   overflow: visible;
 }
-.w[data-fill="content"] .w__header { padding-left: var(--pad-h); }
+.w[data-fill="content"] .w__header { padding-left: var(--pad-l); }
 .w[data-fill="content"] .w__content {
-  padding: calc(var(--pad-v) + 2px) var(--pad-h) var(--pad-v);
+  padding: calc(var(--pad-t) + 2px) var(--pad-r) var(--pad-b) var(--pad-l);
   background: var(--w-fill);
-  border-radius: var(--r-s);
-  box-shadow: var(--shadow-widget);
+  border-radius: var(--w-radius);
+  box-shadow: var(--w-shadow);
 }
 
-/* Без фона: ни заливки, ни тени */
-.w[data-bg="off"],
+/* Границы: на карточке, а в стиле «снаружи» — на подложке контента */
+.w[data-border="on"]:not([data-fill="content"]),
+.w[data-border="on"][data-fill="content"] .w__content {
+  border-style: var(--w-border-style);
+  border-color: var(--w-border-color);
+  border-width: var(--w-border-width);
+}
+
+/* Тень и скругления убраны в чипсы */
 .w[data-shadow="off"],
 .w[data-shadow="off"] .w__content { box-shadow: none; }
 .w[data-radius="off"],
 .w[data-radius="off"] .w__content { border-radius: 0; }
 
+/* Без фона: ни заливки, ни тени */
+.w[data-bg="off"],
 .w[data-bg="off"] .w__content {
   background: transparent;
   box-shadow: none;
@@ -563,9 +573,10 @@ button.swatch-clear:hover { color: var(--icon-secondary); }
   display: grid;
   grid-template-columns: max-content 1fr;   /* колонка подписей по самой широкой подписи блока, редакторы всегда через 8 px */
   gap: var(--sp-s);
-  align-items: center;
+  align-items: start;                       /* подпись — на уровне первой строки раскрытого редактора */
 }
 .form > * { min-height: 24px; display: flex; align-items: center; min-width: 0; }
+.form > .label { height: 24px; }
 .label--strong {
   color: var(--text);
   font-size: var(--fs-l);
@@ -575,48 +586,6 @@ button.swatch-clear:hover { color: var(--icon-secondary); }
 .editor--wide { gap: var(--sp-s); }
 .text-link-static { color: var(--text-link); white-space: nowrap; }
 
-/* Тень — статичный свотч: шахматка + половинка цвета */
-.swatch-shadow {
-  position: relative;
-  width: 24px;
-  height: 24px;
-  flex: none;
-  padding: 1px;
-  border: 1px solid var(--border-unaccented);
-  border-radius: 24px;
-  background: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)), var(--bg);
-  overflow: hidden;
-}
-.swatch-shadow::before {   /* шахматка, в макете — с прозрачностью 15% */
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: url("assets/checker.png") top left / 8px 8px;
-  opacity: 0.15;
-}
-.swatch-shadow::after {    /* половинка цвета тени */
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 11px;
-  height: 22px;
-  border-radius: 12px 0 0 12px;
-  background: #000;
-}
-
-/* Скругления — статичное поле «8» и переключатель «по углам» */
-.radius { flex: 1; display: flex; align-items: center; position: relative; }
-.radius__field {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-xs);
-  width: 56px;
-  height: 24px;
-  border-bottom: 1px solid var(--border-unaccented);
-  color: var(--text);
-}
-.radius__switch { position: absolute; right: 0; color: var(--icon-secondary); font-size: 20px; } /* icon-size_st = 20 */
 
 /* Чипсы под облачками */
 .chips {
@@ -711,7 +680,8 @@ button.size-fill:not([disabled]):hover { color: var(--text-link); }
 .cloud--pads { gap: var(--sp-2xs); }
 .cloud__title { display: flex; align-items: center; height: 24px; font-size: var(--fs-l); font-weight: var(--fw-bold); }
 .pads { display: flex; flex-direction: column; gap: var(--sp-s); }
-.pad-row { position: relative; display: flex; align-items: center; gap: var(--sp-s); height: 24px; }
+.pad-row { position: relative; display: flex; align-items: flex-start; gap: var(--sp-s); min-height: 24px; }
+.pad-row > .label { display: flex; align-items: center; height: 24px; }
 .pad-row--outer { gap: 28px; }      /* поля обоих рядов на одной вертикали, как в макете */
 .pad-fields { display: flex; gap: var(--sp-s); }
 .pad-field {
@@ -724,7 +694,6 @@ button.size-fill:not([disabled]):hover { color: var(--text-link); }
   color: var(--icon-label);
 }
 .pad-field:focus-within { border-bottom-color: var(--text-link); }
-.pad-row .ico { position: absolute; right: 0; top: 0; font-size: 20px; color: var(--icon-secondary); }  /* icon-size_st = 20 */
 
 .toggle-row { display: flex; align-items: center; gap: var(--sp-s); height: 24px; }
 .switch { display: flex; align-items: center; height: 24px; }
@@ -748,6 +717,215 @@ button.size-fill:not([disabled]):hover { color: var(--text-link); }
 .switch[aria-checked="true"] .switch__track { background: #f6733c; }
 .switch[aria-checked="true"]:hover .switch__track { background: #e4662f; }
 .switch[aria-checked="true"] .switch__track::after { left: 10px; }
+
+/* ---------- Редакторы оформления (Figma PropertyGrid 23882:236259) ---------- */
+
+/* Переключатель «по сторонам / по углам» (23882:236391) */
+.side-switch {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--r-2xs);
+  color: var(--icon-secondary);
+}
+.side-switch .ico { font-size: 20px; }                      /* icon-size_st */
+.side-switch:hover { background: var(--bg-hover); }
+.side-switch[aria-pressed="true"] { background: var(--toolbar-bg); color: var(--icon-info); }
+.side-switch[aria-pressed="true"]:hover { background: #e1dbff; }   /* info_hover_same_background-color */
+.row-switch { position: absolute; right: 0; top: 0; }
+
+/* Блок по сторонам 104×74 (отступы, границы) и по углам 104×64 (скругления) */
+.side-box, .corner-box {
+  position: relative;
+  width: 104px;
+  height: 74px;
+  border-radius: var(--r-s);
+  background: var(--bg-pale);
+}
+.corner-box { height: 64px; }
+.side-box input, .corner-box input {
+  position: absolute;
+  height: 24px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--r-2xs);
+  background: none;
+  font: inherit;
+  letter-spacing: inherit;
+  color: var(--text);
+  outline: none;
+}
+.sb-top, .sb-bottom { left: 50%; width: 38px; transform: translateX(-50%); text-align: center; }
+.sb-top { top: 5px; }
+.sb-bottom { bottom: 5px; }
+.sb-left, .sb-right, .cb-tl, .cb-tr, .cb-bl, .cb-br { width: 38px; }
+.sb-left, .sb-right { top: 25px; }
+.sb-left, .cb-tl, .cb-bl { left: 12px; text-align: left; }
+.sb-right, .cb-tr, .cb-br { right: 12px; text-align: right; }
+.cb-tl, .cb-tr { top: 5px; }
+.cb-bl, .cb-br { bottom: 5px; }
+.sb-bar { position: absolute; border-radius: 2px; background: var(--toolbar-bg-active); }
+.sb-bar--top, .sb-bar--bottom { left: 50%; width: 20px; height: 2px; transform: translateX(-50%); }
+.sb-bar--top { top: 2px; }
+.sb-bar--bottom { bottom: 2px; }
+.sb-bar--left, .sb-bar--right { top: 50%; width: 2px; height: 20px; transform: translateY(-50%); }
+.sb-bar--left { left: 2px; }
+.sb-bar--right { right: 2px; }
+.cb-corner { position: absolute; width: 14px; height: 14px; color: var(--toolbar-bg-active); }
+.cb-corner--tl { left: 3px; top: 3px; }
+.cb-corner--tr { right: 3px; top: 3px; transform: scaleX(-1); }
+.cb-corner--br { right: 3px; bottom: 3px; transform: rotate(180deg); }
+.cb-corner--bl { left: 3px; bottom: 3px; transform: scaleY(-1); }
+/* Активное поле подсвечивает свою сторону / угол */
+.side-box:has(.sb-top:focus) .sb-bar--top,
+.side-box:has(.sb-bottom:focus) .sb-bar--bottom,
+.side-box:has(.sb-left:focus) .sb-bar--left,
+.side-box:has(.sb-right:focus) .sb-bar--right { background: var(--border-info); }
+.corner-box:has(.cb-tl:focus) .cb-corner--tl,
+.corner-box:has(.cb-tr:focus) .cb-corner--tr,
+.corner-box:has(.cb-br:focus) .cb-corner--br,
+.corner-box:has(.cb-bl:focus) .cb-corner--bl { color: var(--border-info); }
+
+/* Однострочное число с подчёркиванием (скругления 56, границы 38) */
+.num-field {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-xs);
+  width: 56px;
+  height: 24px;
+  border-bottom: 1px solid var(--border-unaccented);
+  color: var(--icon-label);
+}
+.num-field--s { width: 38px; }
+.num-field:focus-within { border-bottom-color: var(--text-link); }
+.num-field input {
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  letter-spacing: inherit;
+  color: var(--text);
+  outline: none;
+}
+
+/* Строки экрана «Стиль» с раскрываемым редактором */
+.form .row-editor { position: relative; display: flex; align-items: flex-start; gap: 4px; min-height: 24px; }
+.form .row-editor .swatch-clear { margin-top: 3.5px; }
+.form .row-editor--end { padding-right: 0; }
+
+/* Тень: свотч с половинкой цвета + значение (Бабл) */
+.shadow-bubble { display: flex; align-items: center; gap: var(--sp-xs); padding-right: var(--sp-m); border-radius: 12px; white-space: nowrap; }
+.half-swatch {
+  position: relative;
+  width: 24px;
+  height: 24px;
+  flex: none;
+  border: 1px solid var(--border-unaccented);
+  border-radius: 24px;
+  overflow: hidden;
+  background: linear-gradient(var(--hs-tint), var(--hs-tint)), var(--bg);
+}
+.half-swatch::before { content: ""; position: absolute; inset: 0; background: url("assets/checker.png") top left / 8px 8px; opacity: 0.15; }
+.half-swatch::after { content: ""; position: absolute; left: 0; top: 0; width: 50%; height: 100%; background: var(--hs-color); }
+.half-swatch--l { width: 28px; height: 28px; }
+
+/* Тип линии границы */
+.line-btn { display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: var(--r-pill); color: var(--icon-secondary); }
+.line-btn:hover { background: var(--bg-hover); }
+.line-icon { width: 14px; height: 1px; border-top: 1px solid currentColor; }
+.line-icon--dashed { border-top-style: dashed; }
+
+/* Меню типа линии (25056:208942) */
+.line-menu {
+  position: absolute;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: var(--sp-s);
+  background: var(--bg);
+  border-radius: var(--r-s);
+  filter: drop-shadow(0 0 23px rgba(0, 0, 0, 0.12)) drop-shadow(0 0 7.5px rgba(0, 0, 0, 0.12));
+}
+.line-menu button { display: flex; align-items: center; justify-content: center; width: 48px; min-height: 32px; border-radius: var(--r-l); color: var(--icon-secondary); }
+.line-menu button:hover, .line-menu button[aria-checked="true"] { background: var(--bg-hover); }
+
+/* Выбор цвета тени — палитра (30654:47696) */
+.shadow-palette {
+  position: absolute;
+  z-index: 4;
+  width: 362px;
+  padding: 6px 0 10px;
+  background: var(--bg-contrast);
+  border-radius: var(--r-s);
+  filter: drop-shadow(0 0 9px rgba(0, 0, 0, 0.12));
+}
+.sp-head { position: relative; display: flex; align-items: center; gap: var(--sp-m); width: 350px; margin: 0 auto; padding: var(--sp-s) 6px var(--sp-s) var(--sp-m); }
+.sp-head::before { content: ""; position: absolute; inset: 4px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; }
+.sp-head > * { position: relative; }
+.sp-title { flex: 1; display: flex; align-items: center; gap: 6px; font-size: var(--fs-xl); }
+.sp-current { width: 80px; height: 36px; border: 1px solid var(--border-unaccented); border-radius: 18px; background: var(--sp-current); }
+.sp-tool { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: var(--r-pill); color: var(--icon-secondary); }
+.sp-tool[disabled] { cursor: default; }
+.sp-save { display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: var(--r-pill); background: var(--success); color: var(--bg); }
+.sp-close { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; color: var(--icon-label); }
+.sp-body { position: relative; width: 350px; margin: 0 auto; padding: var(--sp-m) var(--sp-s); }
+.sp-body::before { content: ""; position: absolute; inset: 0 4px; background: var(--bg); border-radius: 6px; }
+.sp-swatches { position: relative; display: flex; flex-wrap: wrap; gap: 8px 5px; padding: 0 4px; }
+.sp-swatches .half-swatch--l:hover { width: 32px; height: 32px; margin: -2px; }   /* как у кружков-вызовов */
+.sp-add { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: var(--r-pill); color: var(--icon-secondary); }
+.sp-add:hover { background: var(--bg-hover); }
+
+/* Окно «Тень» (24121:213185) */
+.shadow-editor {
+  position: absolute;
+  z-index: 4;
+  width: 300px;
+  background: var(--bg-contrast);
+  border-radius: var(--r-m);
+  filter: drop-shadow(0 0 23px rgba(0, 0, 0, 0.12)) drop-shadow(0 0 7.5px rgba(0, 0, 0, 0.12));
+}
+.se-head { display: flex; align-items: center; justify-content: space-between; height: 44px; padding: 6px 0 6px var(--sp-m); }
+.se-head h4 { margin: 0; padding-left: 4px; font-size: var(--fs-xl); font-weight: var(--fw-bold); }
+.se-cmds { display: flex; align-items: center; gap: var(--sp-m); padding: 0 var(--sp-2xs) 0 var(--sp-xs); }
+.se-reset .ico { font-size: 20px; color: var(--icon-label); }
+.se-body { padding: 0 var(--sp-2xs) var(--sp-2xs); }
+.se-cloud { display: flex; flex-direction: column; gap: var(--sp-s); padding: var(--sp-s) var(--sp-m); background: var(--bg); border-radius: var(--r-s); }
+.se-row { display: flex; align-items: center; gap: var(--sp-s); min-height: 24px; }
+.se-row > .label { width: 49px; flex: none; }
+.se-slider { flex: 1; min-width: 0; display: flex; align-items: center; gap: var(--sp-s); }
+.se-slider input[type="range"] {
+  flex: 1;
+  min-width: 0;
+  height: 12px;
+  margin: 0;
+  background: transparent;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.se-slider input[type="range"]::-webkit-slider-runnable-track {
+  height: 2px;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #265fa1 var(--p), #dbdbdb var(--p));   /* secondary_color / unaccented_contrast */
+}
+.se-slider input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px;
+  height: 12px;
+  margin-top: -5px;
+  border-radius: 50%;
+  background: var(--bg);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+}
+.se-slider input[type="range"]::-moz-range-track { height: 2px; border-radius: 8px; background: #dbdbdb; }
+.se-slider input[type="range"]::-moz-range-progress { height: 2px; border-radius: 8px; background: #265fa1; }
+.se-slider input[type="range"]::-moz-range-thumb { width: 12px; height: 12px; border: 0; border-radius: 50%; background: var(--bg); box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25); }
 
 /* Меню режимов высоты (Figma 10449:40679): позиция относительно окна (43, 140) */
 .hmenu {
@@ -1037,6 +1215,8 @@ button.size-fill:not([disabled]):hover { color: var(--text-link); }
     <!-- Figma: маркер выбранного пункта меню (12×12) -->
     <symbol id="i-bullet" viewBox="0 0 12 12"><circle cx="6" cy="6" r="3" fill="currentColor"/></symbol>
 
+    <!-- Figma PropertyGrid: уголок редактора скруглений (radius11/21, 16×16, обводка 2) -->
+    <symbol id="i-corner" viewBox="0 0 16 16"><path d="M15 1H7C3.68629 1 1 3.68629 1 7V15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
     <!-- Figma: отступ по горизонтали / вертикали (12×12) -->
     <symbol id="i-pad-h" viewBox="0 0 12 12"><g fill="currentColor"><rect x="0" y="1" width="1" height="10" rx=".5"/><rect x="11" y="1" width="1" height="10" rx=".5"/></g><rect x="3.5" y="3.5" width="5" height="5" rx="1.5" fill="none" stroke="currentColor"/></symbol>
     <symbol id="i-pad-v" viewBox="0 0 12 12"><g fill="currentColor"><rect x="1" y="0" width="10" height="1" rx=".5"/><rect x="1" y="11" width="10" height="1" rx=".5"/></g><rect x="3.5" y="3.5" width="5" height="5" rx="1.5" fill="none" stroke="currentColor"/></symbol>
@@ -1094,6 +1274,7 @@ const ICONS = {
 Object.assign(ICONS, {
   formatArrow:  "",   // пикер: стрелка у «HEX» (16 px)
   padSides:     "",   // «Размер»: переключатель отступов по сторонам (20 px)
+  plus:         "",   // выбор тени: «+» — открыть окно «Тень» (16 px)
   backArrow:    "",   // кнопка «назад» в шапке подэкрана (16 px)
   radiusSwitch: "",   // скругления: переключатель «по углам» (24 px)
 });
@@ -1114,6 +1295,8 @@ const PALETTES = {
   marker: [null, "#0085f2", "#2562aa", "#c2140a", "#f47843", "#e6a119", "#298e3c", "#5a49ab", "#cccccc", "#8991a9"],
   // Фон: белый и 8 пастельных градиентов (−69.6°, цвет → белый)
   background: [null, "#ffffff", "#ebf4ff", "#eeebff", "#ffeceb", "#fff8eb", "#ebffee", "#fff1eb", "#f8f8f8", "#ebfdff"],
+  // Границы: палитра текста + цвет из PropertyGrid (#A39C97)
+  border: [null, "#a39c97", "#000000", "#999999", "#8991a9", "#2562aa", "#5a49ab", "#c2140a", "#e6a119", "#298e3c"],
 };
 
 // #rrggbb + непрозрачность 0–100 → rgba()
@@ -1149,11 +1332,16 @@ const DEFAULT_STATE = {
   // Высота — 4 режима (Figma 10449:37401): fill — ячейка 280, fixed — value,
   // content — по содержимому, limited — по содержимому в пределах min…max
   height: { mode: "fill", value: 240, min: 200, max: 500 },
-  padding: { h: 12, v: 12 },      // внутренние отступы
-  margin: { h: 0, v: 0 },         // внешние отступы
+  // Отступы по сторонам; split — раскрыт редактор по сторонам (PropertyGrid 24008:202564)
+  padding: { top: 12, right: 12, bottom: 12, left: 12, split: false },   // внутренние
+  margin:  { top: 0, right: 0, bottom: 0, left: 0, split: false },       // внешние
   hideEmpty: true,                // «Скрывать без данных»
-  shadow: true,                   // тень карточки (shadow_c); ✕ на экране «Стиль» убирает её в чипсы
-  radius: true,                   // скругления 8 px; ✕ — прямые углы
+  // Редакторы оформления (Figma PropertyGrid, раздел «Оформление» 23882:236259).
+  // on: false — строка убрана в чипсы на экране «Стиль».
+  shadow: { on: true, color: "#000000", opacity: 6, x: 0, y: 0, blur: 8, spread: 0 },   // по умолчанию shadow_c
+  radius: { on: true, tl: 8, tr: 8, br: 8, bl: 8, split: false },                       // скругления по углам
+  border: { on: false, color: "#a39c97", opacity: 100, style: "solid",
+            top: 1, right: 1, bottom: 1, left: 1, split: false },                        // границы по сторонам
 };
 const CELL = { w: 557, h: 280 };
 
@@ -1193,8 +1381,15 @@ function renderWidget() {
   w.dataset.marker = isOn("marker") ? "on" : "off";
   w.dataset.bg = isOn("background") ? "on" : "off";
   w.dataset.fill = fill;
-  w.dataset.shadow = state.shadow ? "on" : "off";
-  w.dataset.radius = state.radius ? "on" : "off";
+  w.dataset.shadow = state.shadow.on ? "on" : "off";
+  w.dataset.radius = state.radius.on ? "on" : "off";
+  w.dataset.border = isOn("border") ? "on" : "off";
+  const { shadow: sh, radius: rd, border: bd } = state;
+  w.style.setProperty("--w-shadow", `${sh.x}px ${sh.y}px ${sh.blur}px ${sh.spread}px ${rgba(sh.color, sh.opacity)}`);
+  w.style.setProperty("--w-radius", `${rd.tl}px ${rd.tr}px ${rd.br}px ${rd.bl}px`);
+  w.style.setProperty("--w-border-width", `${bd.top}px ${bd.right}px ${bd.bottom}px ${bd.left}px`);
+  w.style.setProperty("--w-border-color", bd.color ? rgba(bd.color, bd.opacity) : "transparent");
+  w.style.setProperty("--w-border-style", bd.style);
 
   w.style.setProperty("--w-title", partColor("title") || "transparent");
   w.style.setProperty("--w-marker", partColor("marker") || "transparent");
@@ -1211,10 +1406,12 @@ function renderWidget() {
   widgetFrame.style.maxHeight = height.mode === "limited" ? height.max + "px" : "";
   widgetFrame.toggleAttribute("data-auto", auto);
   // Внешние отступы: в обычном режиме — inset абсолютного слота, по содержимому — margin
-  widgetSlot.style.inset = auto ? "" : `${margin.v}px ${margin.h}px`;
-  widgetSlot.style.margin = auto ? `${margin.v}px ${margin.h}px` : "";
-  w.style.setProperty("--pad-h", padding.h + "px");
-  w.style.setProperty("--pad-v", padding.v + "px");
+  const m = `${margin.top}px ${margin.right}px ${margin.bottom}px ${margin.left}px`;
+  widgetSlot.style.inset = auto ? "" : m;
+  widgetSlot.style.margin = auto ? m : "";
+  for (const [side, v] of [["t", padding.top], ["r", padding.right], ["b", padding.bottom], ["l", padding.left]]) {
+    w.style.setProperty(`--pad-${side}`, v + "px");
+  }
 }
 
 // Применить пресет стиля: раскладка и включённость элементов; выбранные цвета сохраняются
@@ -1349,6 +1546,158 @@ function swatchEditor(key, label, clearable) {
 
 const FILL_LABELS = { widget: "на всем виджете", content: "только на контенте" };
 
+// ---------- Редакторы оформления (Figma PropertyGrid 23882:236259) ----------
+
+const num = (field, value, cls = "", label = "") =>
+  `<input class="${cls}" data-field="${field}" value="${value}" inputmode="numeric" maxlength="4" aria-label="${label}">`;
+
+// Переключатель «по сторонам / по углам»; glyph: padSides (EBCE) | radiusSwitch (E95F)
+const sideSwitch = (group, glyph, label) =>
+  `<button class="side-switch row-switch" data-action="split" data-group="${group}" aria-pressed="${state[group].split}" aria-label="${label}"><i class="ico" data-i="${glyph}"></i></button>`;
+
+// Блок по сторонам 104×74 (24008:202581)
+function sideBox(group, label) {
+  const v = state[group];
+  return `
+    <span class="side-box">
+      ${num(`${group}.top`, v.top, "sb-top", `${label}: сверху`)}
+      ${num(`${group}.left`, v.left, "sb-left", `${label}: слева`)}
+      ${num(`${group}.right`, v.right, "sb-right", `${label}: справа`)}
+      ${num(`${group}.bottom`, v.bottom, "sb-bottom", `${label}: снизу`)}
+      <i class="sb-bar sb-bar--top"></i><i class="sb-bar sb-bar--right"></i><i class="sb-bar sb-bar--bottom"></i><i class="sb-bar sb-bar--left"></i>
+    </span>`;
+}
+
+// Блок по углам 104×64 (24015:203063)
+function cornerBox() {
+  const r = state.radius;
+  const corners = [["tl", "сверху слева"], ["tr", "сверху справа"], ["bl", "снизу слева"], ["br", "снизу справа"]];
+  return `
+    <span class="corner-box">
+      ${corners.map(([k, l]) => num(`radius.${k}`, r[k], `cb-${k}`, `Скругление ${l}`)).join("")}
+      ${corners.map(([k]) => `<svg class="cb-corner cb-corner--${k}"><use href="#i-corner"/></svg>`).join("")}
+    </span>`;
+}
+
+// Подпись тени: «#A39C97, 0.1»
+const shadowText = (s) => `${s.color.toUpperCase()}, ${+(s.opacity / 100).toFixed(2)}`;
+const halfSwatch = (color, opacity, cls = "") =>
+  `<span class="half-swatch ${cls}" style="--hs-color:${color};--hs-tint:${rgba(color, Math.max(opacity, 14))}"></span>`;
+
+// Готовые тени в палитре (30654:47696): цвет + прозрачность
+const SHADOW_PRESETS = [
+  { color: "#000000", opacity: 14 }, { color: "#999999", opacity: 20 }, { color: "#265fa1", opacity: 14 },
+  { color: "#8991a9", opacity: 14 }, { color: "#6757b7", opacity: 14 },
+];
+const SHADOW_RANGES = { x: [-50, 50], y: [-50, 50], blur: [0, 100], spread: [-50, 50] };
+
+function shadowRowHTML() {
+  const s = state.shadow;
+  return `
+    <span class="label">Тень</span>
+    <span class="row-editor">
+      <button class="shadow-bubble" data-action="shadow-palette" aria-label="Тень: выбрать">${halfSwatch(s.color, s.opacity)}${shadowText(s)}</button>
+      <button class="swatch-clear" data-action="toggle" data-key="shadow" aria-label="Тень: убрать"><i class="ico ico--s" data-i="close"></i></button>
+    </span>`;
+}
+
+function radiusRowHTML() {
+  const r = state.radius;
+  return `
+    <span class="label">Скругления</span>
+    <span class="row-editor" style="padding-right:48px">
+      ${r.split ? cornerBox() : `
+        <label class="num-field"><svg class="icon" width="12" height="12"><use href="#i-radius"/></svg>${num("radius.all", r.tl, "", "Скругления")}</label>`}
+      <span style="position:absolute;right:0;top:0;display:flex;gap:4px;align-items:center">
+        <button class="side-switch" data-action="split" data-group="radius" aria-pressed="${r.split}" aria-label="Скругления по углам"><i class="ico" data-i="radiusSwitch"></i></button>
+        <button class="swatch-clear" data-action="toggle" data-key="radius" aria-label="Скругления: убрать"><i class="ico ico--s" data-i="close"></i></button>
+      </span>
+    </span>`;
+}
+
+function borderRowHTML() {
+  const b = state.border;
+  return `
+    <span class="label">Границы</span>
+    <span class="row-editor" style="padding-right:28px;gap:8px">
+      <span class="editor">${swatchEditor("border", "Границы", true)}</span>
+      <button class="line-btn" data-action="line-menu" aria-label="Тип линии"><span class="line-icon ${b.style === "dashed" ? "line-icon--dashed" : ""}"></span></button>
+      <span class="editor" style="gap:4px">
+        ${b.split ? sideBox("border", "Граница") : `<label class="num-field num-field--s">${num("border.all", b.top, "", "Толщина границы")}</label>`}
+        <button class="swatch-clear" data-action="toggle" data-key="border" aria-label="Границы: убрать"><i class="ico ico--s" data-i="close"></i></button>
+      </span>
+      ${sideSwitch("border", "padSides", "Границы по сторонам")}
+    </span>`;
+}
+
+function shadowPaletteHTML() {
+  const { x, y } = ui.shadowPalette;
+  const s = state.shadow;
+  return `
+    <div class="shadow-palette" style="left:${x}px;top:${y}px" role="dialog" aria-label="Цвет тени">
+      <div class="sp-head">
+        <span class="sp-title">Цвет <span class="sp-current" style="--sp-current:${rgba(s.color, s.opacity)}"></span></span>
+        <button class="sp-tool" disabled aria-label="Пипетка"><svg class="icon" width="16" height="16"><use href="#i-pipette"/></svg></button>
+        <button class="sp-tool" data-action="shadow-reset" aria-label="Сбросить тень"><i class="ico ico--s" data-i="reset"></i></button>
+        <button class="sp-save" data-action="shadow-popup-apply" aria-label="Применить"><i class="ico ico--s" data-i="check"></i></button>
+        <button class="sp-close" data-action="shadow-popup-cancel" aria-label="Закрыть"><i class="ico" data-i="close"></i></button>
+      </div>
+      <div class="sp-body"><div class="sp-swatches">
+        ${SHADOW_PRESETS.map((p) => `<button data-action="shadow-preset" data-color="${p.color}" data-opacity="${p.opacity}" aria-label="${p.color}, ${p.opacity / 100}">${halfSwatch(p.color, p.opacity, "half-swatch--l")}</button>`).join("")}
+        <button class="sp-add" data-action="shadow-editor" aria-label="Настроить тень"><i class="ico ico--s" data-i="plus"></i></button>
+      </div></div>
+    </div>`;
+}
+
+function shadowEditorHTML() {
+  const { x, y } = ui.shadowEditor;
+  const s = state.shadow;
+  const slider = (k, label) => {
+    const [min, max] = SHADOW_RANGES[k];
+    const p = ((s[k] - min) / (max - min)) * 100;
+    return `
+      <div class="se-row">
+        <span class="label">${label}</span>
+        <span class="se-slider">
+          <input type="range" data-range="shadow.${k}" min="${min}" max="${max}" value="${s[k]}" style="--p:${p}%" aria-label="${label}">
+          <label class="num-field num-field--s">${num(`shadow.${k}`, s[k], "", label)}</label>
+        </span>
+      </div>`;
+  };
+  return `
+    <div class="shadow-editor" style="left:${x}px;top:${y}px" role="dialog" aria-label="Тень">
+      <header class="se-head">
+        <h4>Тень</h4>
+        <span class="se-cmds">
+          <button class="btn-icon se-reset" data-action="shadow-reset" aria-label="Сбросить тень"><i class="ico ico--s" data-i="reset"></i></button>
+          <button class="sp-save" data-action="shadow-popup-apply" aria-label="Применить"><i class="ico ico--s" data-i="check"></i></button>
+          <button class="btn-icon" data-action="shadow-popup-cancel" aria-label="Закрыть"><i class="ico" data-i="close"></i></button>
+        </span>
+      </header>
+      <div class="se-body"><div class="se-cloud">
+        <div class="se-row"><span class="label">Цвет</span>
+          <button class="shadow-bubble" data-action="shadow-palette" aria-label="Цвет тени">${halfSwatch(s.color, s.opacity)}${shadowText(s)}</button></div>
+        ${slider("x", "X")}${slider("y", "Y")}${slider("blur", "Блюр")}${slider("spread", "Размах")}
+      </div></div>
+    </div>`;
+}
+
+function lineMenuHTML() {
+  const { x, y } = ui.lineMenu;
+  return `
+    <div class="line-menu" style="left:${x}px;top:${y}px" role="menu" aria-label="Тип линии">
+      <button role="menuitemradio" aria-checked="${state.border.style === "solid"}" data-action="line-style" data-style="solid" aria-label="Сплошная"><span class="line-icon"></span></button>
+      <button role="menuitemradio" aria-checked="${state.border.style === "dashed"}" data-action="line-style" data-style="dashed" aria-label="Пунктир"><span class="line-icon line-icon--dashed"></span></button>
+    </div>`;
+}
+
+// Позиция попапа рядом с элементом, в координатах слота окна настроек
+function popupPos(el, dx = 0, dy = 0) {
+  const b = el.getBoundingClientRect();
+  const s = settingsSlot.getBoundingClientRect();
+  return { x: Math.round(b.left - s.left + dx), y: Math.round(b.top - s.top + dy) };
+}
+
 function styleScreenHTML() {
   const { title, background } = state;
   const bgOn = isOn("background");
@@ -1374,10 +1723,10 @@ function styleScreenHTML() {
   const chips = [
     !isOn("title") && `<button class="chip" data-action="title-on">Заголовок</button>`,
     !markerOn && `<button class="chip" data-action="marker-on">Маркер</button>`,
-    !state.shadow && `<button class="chip" data-action="toggle" data-key="shadow">Тень</button>`,
-    !state.radius && `<button class="chip" data-action="toggle" data-key="radius">Скругления</button>`,
+    !state.shadow.on && `<button class="chip" data-action="toggle" data-key="shadow">Тень</button>`,
+    !state.radius.on && `<button class="chip" data-action="toggle" data-key="radius">Скругления</button>`,
     isOn("title") && `<button class="chip" disabled>Иконка</button>`,
-    `<button class="chip" disabled>Границы</button>`,
+    !state.border.on && `<button class="chip" data-action="toggle" data-key="border">Границы</button>`,
   ].filter(Boolean).join("");
 
   const menu = ui.menu === "fill" ? `
@@ -1405,18 +1754,9 @@ function styleScreenHTML() {
             ${swatchEditor("background", "Фон", false)}
             ${bgOn ? `<button class="link" data-action="menu" data-menu="fill" aria-haspopup="menu">${FILL_LABELS[background.fill]}</button>` : ""}
           </span>
-          ${state.shadow ? `
-          <span class="label">Тень</span>
-          <span class="editor"><span class="swatch-shadow"></span><button class="swatch-clear" data-action="toggle" data-key="shadow" aria-label="Тень: убрать"><i class="ico ico--s" data-i="close"></i></button></span>` : ""}
-          ${state.radius ? `
-          <span class="label">Скругления</span>
-          <span class="editor">
-            <span class="radius">
-              <span class="radius__field"><svg class="icon" width="12" height="12" style="color:var(--icon-label)"><use href="#i-radius"/></svg>8</span>
-              <i class="ico radius__switch" data-i="radiusSwitch"></i>
-            </span>
-            <button class="swatch-clear" data-action="toggle" data-key="radius" aria-label="Скругления: убрать"><i class="ico ico--s" data-i="close"></i></button>
-          </span>` : ""}
+          ${state.shadow.on ? shadowRowHTML() : ""}
+          ${state.radius.on ? radiusRowHTML() : ""}
+          ${state.border.on ? borderRowHTML() : ""}
         </div>
       </div>
 
@@ -1476,14 +1816,16 @@ function sizeScreenHTML() {
       </label>
       <button class="swatch-clear" data-action="height-mode" data-mode="content" aria-label="Убрать ограничение"><i class="ico ico--s" data-i="close"></i></button>
     </span>`;
+  // Отступы: два поля (по горизонтали / вертикали) или блок по сторонам (PropertyGrid 23882:236302)
   const padRow = (group, label, cls) => `
-    <div class="pad-row ${cls}">
+    <div class="pad-row ${state[group].split ? "" : cls}">
       <span class="label">${label}</span>
+      ${state[group].split ? sideBox(group, label) : `
       <span class="pad-fields">
-        <label class="pad-field"><svg class="icon" width="12" height="12"><use href="#i-pad-h"/></svg><input data-field="${group}.h" value="${state[group].h}" inputmode="numeric" maxlength="3" aria-label="${label} по горизонтали"></label>
-        <label class="pad-field"><svg class="icon" width="12" height="12"><use href="#i-pad-v"/></svg><input data-field="${group}.v" value="${state[group].v}" inputmode="numeric" maxlength="3" aria-label="${label} по вертикали"></label>
-      </span>
-      <i class="ico" data-i="padSides"></i>
+        <label class="pad-field"><svg class="icon" width="12" height="12"><use href="#i-pad-h"/></svg><input data-field="${group}.h" value="${state[group].left}" inputmode="numeric" maxlength="3" aria-label="${label} по горизонтали"></label>
+        <label class="pad-field"><svg class="icon" width="12" height="12"><use href="#i-pad-v"/></svg><input data-field="${group}.v" value="${state[group].top}" inputmode="numeric" maxlength="3" aria-label="${label} по вертикали"></label>
+      </span>`}
+      ${sideSwitch(group, "padSides", `${label} отступы по сторонам`)}
     </div>`;
   return `
     ${subHeadHTML("Размер")}
@@ -1534,9 +1876,9 @@ function presetsHTML() {
 
 // ---------- Пикер цвета ----------
 
-const PICKER_TITLES = { title: "Текст", marker: "Маркер", background: "Фон" };
+const PICKER_TITLES = { title: "Текст", marker: "Маркер", background: "Фон", border: "Границы" };
 // Сдвиг пикера относительно свотча — как в макете (11931:124361 / 124382 / 124403)
-const PICKER_OFFSET = { background: [-19, -68], title: [-16, -68], marker: [-30, -68] };
+const PICKER_OFFSET = { background: [-19, -68], title: [-16, -68], marker: [-30, -68], border: [-16, -68] };
 
 // Скрытый нативный выбор цвета для «Другой цвет»; живёт вне перерисовываемого окна
 const nativeColor = Object.assign(document.createElement("input"), { type: "color", tabIndex: -1 });
@@ -1639,7 +1981,10 @@ function renderSettings() {
     settingsSlot.innerHTML = `<section class="win" aria-label="Настройки виджета">${SCREENS[ui.screen]()}</section>`
       + (ui.picker ? pickerHTML() : "")
       + (ui.presets ? presetsHTML() : "")
-      + (ui.heightMenu ? heightMenuHTML() : "");
+      + (ui.heightMenu ? heightMenuHTML() : "")
+      + (ui.shadowPalette ? shadowPaletteHTML() : "")
+      + (ui.shadowEditor ? shadowEditorHTML() : "")
+      + (ui.lineMenu ? lineMenuHTML() : "");
     settingsSlot.dataset.screen = ui.screen;
   }
   paintIcons(settingsSlot);
@@ -1657,7 +2002,43 @@ const ACTIONS = {
   fill: (el) => { ui.menu = null; setState((s) => { s.background.fill = el.dataset.fill; }); },
   "title-on": () => setState((s) => { s.title.on = true; s.title.color ||= DEFAULT_STATE.title.color; }),
   "marker-on": () => setState((s) => { s.marker.on = true; s.marker.color ||= DEFAULT_STATE.marker.color; }),
-  toggle: (el) => setState((s) => { s[el.dataset.key] = !s[el.dataset.key]; }),   // тень, скругления
+  toggle: (el) => { closeAppearancePopups(); setState((s) => { s[el.dataset.key].on = !s[el.dataset.key].on; }); },   // тень, скругления, границы
+
+  // Переключатель «по сторонам / по углам»; при сворачивании значения выравниваются по первому
+  split: (el) => setState((s) => {
+    const g = s[el.dataset.group];
+    g.split = !g.split;
+    if (g.split) return;
+    if (el.dataset.group === "radius") g.tr = g.br = g.bl = g.tl;
+    else if (el.dataset.group === "border") g.right = g.bottom = g.left = g.top;
+    else { g.right = g.left; g.bottom = g.top; }
+  }),
+
+  // Тень: палитра готовых теней и окно параметров
+  "shadow-palette": (el) => {
+    const before = ui.shadowEditor?.before ?? structuredClone(state.shadow);
+    ui.shadowEditor = null;
+    ui.shadowPalette = { ...popupPos(el, -16, -14), before };
+    render();
+  },
+  "shadow-editor": () => {
+    const { x, y, before } = ui.shadowPalette;
+    ui.shadowPalette = null;
+    ui.shadowEditor = { x: x + 30, y: y + 6, before };
+    render();
+  },
+  "shadow-preset": (el) => setState((s) => { s.shadow.color = el.dataset.color; s.shadow.opacity = +el.dataset.opacity; }),
+  "shadow-reset": () => setState((s) => { s.shadow = { ...structuredClone(DEFAULT_STATE.shadow), on: true }; }),
+  "shadow-popup-apply": () => { ui.shadowPalette = ui.shadowEditor = null; render(); },
+  "shadow-popup-cancel": () => {
+    const before = (ui.shadowPalette || ui.shadowEditor).before;
+    ui.shadowPalette = ui.shadowEditor = null;
+    setState((s) => { s.shadow = before; });
+  },
+
+  // Границы: тип линии
+  "line-menu": (el) => { ui.lineMenu = ui.lineMenu ? null : popupPos(el, -12, 28); render(); },
+  "line-style": (el) => { ui.lineMenu = null; setState((s) => { s.border.style = el.dataset.style; }); },
   clear: (el) => { ui.picker = null; setState((s) => { s[el.dataset.key].on = false; }); },
   swatch: (el) => {
     // Клик по кружку — и цветному, и пустому — открывает пикер; выбор цвета включает элемент
@@ -1714,8 +2095,29 @@ function commitPickerField(input) {
     else render();
   }
 }
-// Поля экрана «Размер»: data-field="size.w" | "height.value" | "height.max" | "padding.h" | …
-const FIELD_LIMITS = { size: [40, 2000], height: [40, 2000], padding: [0, 100], margin: [0, 100] };
+// Числовые поля: data-field="группа.ключ"
+//   size.w | height.value | height.max
+//   padding/margin: h (слева+справа), v (сверху+снизу), top/right/bottom/left
+//   radius: all (все углы), tl/tr/br/bl;  border: all (все стороны), top/…;  shadow: x/y/blur/spread
+const FIELD_LIMITS = {
+  size: [40, 2000], height: [40, 2000], padding: [0, 100], margin: [0, 100],
+  radius: [0, 100], border: [0, 20], shadow: [-50, 100],
+};
+const FIELD_ALIASES = {
+  h: ["left", "right"], v: ["top", "bottom"],
+  all: null,   // зависит от группы, см. ниже
+};
+function setGroupValue(s, group, key, v) {
+  if (group === "shadow") {
+    const [min, max] = SHADOW_RANGES[key];
+    s.shadow[key] = Math.min(max, Math.max(min, v));
+    return;
+  }
+  const keys = key === "all"
+    ? (group === "radius" ? ["tl", "tr", "br", "bl"] : ["top", "right", "bottom", "left"])
+    : FIELD_ALIASES[key] || [key];
+  for (const k of keys) s[group][k] = v;
+}
 function commitSizeField(input) {
   const [group, key] = input.dataset.field.split(".");
   const raw = input.value.trim();
@@ -1725,7 +2127,7 @@ function commitSizeField(input) {
   const [min, max] = FIELD_LIMITS[group];
   const v = Math.min(max, Math.max(min, n));
   setState((s) => {
-    if (group !== "height") { s[group][key] = v; return; }
+    if (group !== "height") { setGroupValue(s, group, key, v); return; }
     if (key === "max") { s.height.max = Math.max(v, s.height.min); return; }
     // «Высота»: в режиме с ограничением — минимум, иначе ввод числа делает высоту фиксированной
     if (s.height.mode === "limited") s.height.min = Math.min(v, s.height.max);
@@ -1741,10 +2143,24 @@ settingsSlot.addEventListener("keydown", (e) => {
   if (e.key === "Enter" && (e.target.closest(".picker") || e.target.dataset.field)) e.target.blur();
 });
 
+// Ползунки окна «Тень»: виджет меняется во время перетаскивания, окно не перерисовываем
+settingsSlot.addEventListener("input", (e) => {
+  const r = e.target.dataset.range;
+  if (!r) return;
+  const key = r.split(".")[1];
+  const [min, max] = SHADOW_RANGES[key];
+  state.shadow[key] = Number(e.target.value);
+  e.target.style.setProperty("--p", ((state.shadow[key] - min) / (max - min)) * 100 + "%");
+  e.target.parentElement.querySelector(`[data-field="shadow.${key}"]`).value = state.shadow[key];
+  renderWidget();
+});
+
 // Esc закрывает верхний попап
 document.addEventListener("keydown", (e) => {
   if (e.key !== "Escape") return;
   if (ui.picker) ACTIONS["picker-cancel"]();
+  else if (ui.shadowPalette || ui.shadowEditor) ACTIONS["shadow-popup-cancel"]();
+  else if (ui.lineMenu) { ui.lineMenu = null; render(); }
   else if (ui.presets) { ui.presets = false; render(); }
   else if (ui.heightMenu) { ui.heightMenu = false; render(); }
   else if (ui.menu) { ui.menu = null; render(); }
@@ -1753,6 +2169,15 @@ document.addEventListener("keydown", (e) => {
 // Клик мимо открытого пикера подтверждает выбор и закрывает его
 document.addEventListener("click", (e) => {
   if (ui.picker && !e.target.closest(".picker, .swatch")) { ui.picker = null; render(); }
+}, true);
+
+// Попапы редакторов оформления: клик мимо закрывает (тень — с сохранением выбранного)
+function closeAppearancePopups() { ui.shadowPalette = ui.shadowEditor = ui.lineMenu = null; }
+document.addEventListener("click", (e) => {
+  const open = ui.shadowPalette || ui.shadowEditor || ui.lineMenu;
+  if (!open || e.target.closest(".shadow-palette, .shadow-editor, .line-menu, [data-action=shadow-palette], [data-action=line-menu]")) return;
+  closeAppearancePopups();
+  render();
 }, true);
 
 // Клик мимо меню высоты закрывает его
