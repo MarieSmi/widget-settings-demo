@@ -170,6 +170,11 @@ button:focus-visible { outline: 2px solid var(--border-info); outline-offset: 2p
   width: var(--widget-w);
   height: var(--widget-h);
 }
+/* Высота по содержимому: слот в потоке, рамка подстраивается под виджет */
+.widget-frame[data-auto] { height: auto; display: flex; flex-direction: column; }
+.widget-frame[data-auto] .widget-slot { position: relative; inset: auto; flex: 1; min-height: 0; }
+.widget-frame[data-auto] .w { min-height: 0; }
+
 /* Рамка выделения поверх виджета (как в макете: виджет 557×280 целиком, рамка — сверху) */
 .widget-frame::after {
   content: "";
@@ -303,6 +308,7 @@ button:focus-visible { outline: 2px solid var(--border-info); outline-offset: 2p
   gap: var(--sp-s);
   width: 246px;
   max-width: 100%;
+  padding-bottom: 2px;   /* contentDashWidget: высота виджета «по контенту» — 156, как в макете */
 }
 .w__line {
   height: 24px;
@@ -699,7 +705,7 @@ button.swatch-clear:hover { color: var(--icon-secondary); }
 }
 .size-field input::placeholder { color: rgba(137, 145, 169, 0.6); }   /* placeholder-color_inputtext */
 .size-fill { color: var(--text-label); white-space: nowrap; }
-.size-fill:not([disabled]):hover { color: var(--text-link); }
+button.size-fill:not([disabled]):hover { color: var(--text-link); }
 .size-fill[disabled] { cursor: default; }
 
 .cloud--pads { gap: var(--sp-2xs); }
@@ -742,6 +748,35 @@ button.swatch-clear:hover { color: var(--icon-secondary); }
 .switch[aria-checked="true"] .switch__track { background: #f6733c; }
 .switch[aria-checked="true"]:hover .switch__track { background: #e4662f; }
 .switch[aria-checked="true"] .switch__track::after { left: 10px; }
+
+/* Меню режимов высоты (Figma 10449:40679): позиция относительно окна (43, 140) */
+.hmenu {
+  position: absolute;
+  left: 43px;
+  top: 140px;
+  z-index: 3;
+  width: 276px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: var(--sp-m) var(--sp-s);
+  background: var(--bg);
+  border-radius: var(--r-s);
+  filter: drop-shadow(0 0 9px rgba(0, 0, 0, 0.12));
+}
+.hmenu__item {
+  display: flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 var(--sp-s);
+  border-radius: var(--r-l);
+  font-size: var(--fs-xl);
+  text-align: left;
+  white-space: nowrap;
+}
+.hmenu__item:hover { background: var(--bg-hover); }
+.hmenu__bullet { flex: none; margin-right: 2px; color: #cc3d00; }
+.size-form .editor { display: flex; align-items: center; gap: 4px; }
 
 /* ---------- Попап выбора стиля (Figma 11931:124340) ----------
    Две колонки карточек-превью 240×132; позиция относительно окна — (44, 183). */
@@ -1110,7 +1145,10 @@ const DEFAULT_STATE = {
   marker: { on: true, color: "#0085f2", opacity: 100 },
   background: { on: true, color: "#ffffff", opacity: 100, fill: "widget" },
   // Экран «Размер»: null — «заполнить» (ячейка дашборда 557×280)
-  size: { w: null, h: null },
+  size: { w: null },              // ширина; null — «заполнить»
+  // Высота — 4 режима (Figma 10449:37401): fill — ячейка 280, fixed — value,
+  // content — по содержимому, limited — по содержимому в пределах min…max
+  height: { mode: "fill", value: 240, min: 200, max: 500 },
   padding: { h: 12, v: 12 },      // внутренние отступы
   margin: { h: 0, v: 0 },         // внешние отступы
   hideEmpty: true,                // «Скрывать без данных»
@@ -1165,10 +1203,16 @@ function renderWidget() {
   wTitle.textContent = state.name;
 
   // Размер и отступы: рамка выделения повторяет размер виджета, внешние отступы — внутри неё
-  const { size, padding, margin } = state;
+  const { size, height, padding, margin } = state;
+  const auto = height.mode === "content" || height.mode === "limited";   // высота по содержимому
   widgetFrame.style.width = (size.w ?? CELL.w) + "px";
-  widgetFrame.style.height = (size.h ?? CELL.h) + "px";
-  widgetSlot.style.inset = `${margin.v}px ${margin.h}px`;
+  widgetFrame.style.height = auto ? "" : (height.mode === "fixed" ? height.value : CELL.h) + "px";
+  widgetFrame.style.minHeight = height.mode === "limited" ? height.min + "px" : "";
+  widgetFrame.style.maxHeight = height.mode === "limited" ? height.max + "px" : "";
+  widgetFrame.toggleAttribute("data-auto", auto);
+  // Внешние отступы: в обычном режиме — inset абсолютного слота, по содержимому — margin
+  widgetSlot.style.inset = auto ? "" : `${margin.v}px ${margin.h}px`;
+  widgetSlot.style.margin = auto ? `${margin.v}px ${margin.h}px` : "";
   w.style.setProperty("--pad-h", padding.h + "px");
   w.style.setProperty("--pad-v", padding.v + "px");
 }
@@ -1254,7 +1298,7 @@ function mainScreenHTML() {
       <div class="cloud">
         <div class="row">
           <span class="label">Высота</span>
-          <span class="row__grow"><button class="link" data-action="screen" data-screen="size">${state.size.h == null ? "Заполнить" : state.size.h + " px"}</button></span>
+          <span class="row__grow"><button class="link" data-action="height-menu" aria-haspopup="menu">${HEIGHT_MODES[state.height.mode].label}</button></span>
           <button class="btn-arrow" data-action="screen" data-screen="size" aria-label="Размер">${arrowRight}</button>
         </div>
       </div>
@@ -1381,15 +1425,57 @@ function styleScreenHTML() {
     ${menu}`;
 }
 
-// Экран «Размер» (11931:126178)
+// Режимы высоты: подпись на главном экране и пункт меню (Figma 10449:37401, меню 10449:40679)
+const HEIGHT_MODES = {
+  fixed:   { label: "Фиксированная",              item: "Фиксированная" },
+  content: { label: "По контенту",                item: "По контенту" },
+  limited: { label: "По контенту с ограничением", item: "По контенту с ограничениями" },
+  fill:    { label: "Заполнить",                  item: "Заполнить" },
+};
+
+function heightMenuHTML() {
+  return `
+    <div class="hmenu" role="menu" aria-label="Высота">
+      ${Object.entries(HEIGHT_MODES).map(([k, m]) => `
+        <button class="hmenu__item" role="menuitemradio" aria-checked="${state.height.mode === k}" data-action="height-mode" data-mode="${k}">
+          <svg class="hmenu__bullet" width="12" height="12">${state.height.mode === k ? `<use href="#i-bullet"/>` : ""}</svg>
+          ${m.item}
+        </button>`).join("")}
+      <button class="presets__close" data-action="height-menu-close" aria-label="Закрыть"><svg width="12" height="12"><use href="#i-popup-close"/></svg></button>
+    </div>`;
+}
+
+// Экран «Размер» (11931:126178; режимы высоты — 10449:41150, 10451:42079, 10451:43368, 10451:44963)
 function sizeScreenHTML() {
-  const { size, padding, margin, hideEmpty } = state;
-  const sizeField = (k, label) => `
-    <span class="label">${label}</span>
+  const { size, height, padding, margin, hideEmpty } = state;
+  const widthField = `
+    <span class="label">Ширина</span>
     <label class="size-field">
-      <input id="size-${k}" data-field="size.${k}" value="${size[k] ?? ""}" placeholder="${CELL[k]}" inputmode="numeric" maxlength="4" aria-label="${label}, px">
-      <button class="size-fill" data-action="size-fill" data-key="${k}" ${size[k] == null ? "disabled" : ""}>заполнить</button>
+      <input id="size-w" data-field="size.w" value="${size.w ?? ""}" placeholder="${CELL.w}" inputmode="numeric" maxlength="4" aria-label="Ширина, px">
+      <button class="size-fill" data-action="size-fill" data-key="w" ${size.w == null ? "disabled" : ""}>заполнить</button>
     </label>`;
+  // Высота: значение и подпись справа зависят от режима
+  const hView = {
+    fill:    { value: "", placeholder: CELL.h, suffix: "заполнить" },
+    fixed:   { value: height.value, placeholder: "", suffix: "px" },
+    content: { value: "", placeholder: widgetFrame.offsetHeight, suffix: "по контенту" },
+    limited: { value: height.min, placeholder: "", suffix: "px" },
+  }[height.mode];
+  const heightField = `
+    <span class="label">Высота</span>
+    <label class="size-field">
+      <input id="size-h" data-field="height.value" value="${hView.value}" placeholder="${hView.placeholder}" inputmode="numeric" maxlength="4" aria-label="Высота, px">
+      <span class="size-fill">${hView.suffix}</span>
+    </label>`;
+  const maxField = height.mode !== "limited" ? "" : `
+    <span class="label">Max высота</span>
+    <span class="editor">
+      <label class="size-field">
+        <input id="size-max" data-field="height.max" value="${height.max}" inputmode="numeric" maxlength="4" aria-label="Максимальная высота, px">
+        <span class="size-fill">px</span>
+      </label>
+      <button class="swatch-clear" data-action="height-mode" data-mode="content" aria-label="Убрать ограничение"><i class="ico ico--s" data-i="close"></i></button>
+    </span>`;
   const padRow = (group, label, cls) => `
     <div class="pad-row ${cls}">
       <span class="label">${label}</span>
@@ -1403,7 +1489,7 @@ function sizeScreenHTML() {
     ${subHeadHTML("Размер")}
     <div class="win__body">
       <div class="cloud">
-        <div class="size-form">${sizeField("w", "Ширина")}${sizeField("h", "Высота")}</div>
+        <div class="size-form">${widthField}${heightField}${maxField}</div>
       </div>
       <div class="cloud cloud--pads">
         <span class="cloud__title">Отступы</span>
@@ -1552,7 +1638,8 @@ function renderSettings() {
   } else {
     settingsSlot.innerHTML = `<section class="win" aria-label="Настройки виджета">${SCREENS[ui.screen]()}</section>`
       + (ui.picker ? pickerHTML() : "")
-      + (ui.presets ? presetsHTML() : "");
+      + (ui.presets ? presetsHTML() : "")
+      + (ui.heightMenu ? heightMenuHTML() : "");
     settingsSlot.dataset.screen = ui.screen;
   }
   paintIcons(settingsSlot);
@@ -1583,7 +1670,10 @@ const ACTIONS = {
   },
 
   // Размер
-  "size-fill": (el) => setState((s) => { s.size[el.dataset.key] = null; }),
+  "size-fill": () => setState((s) => { s.size.w = null; }),
+  "height-menu": () => { ui.picker = null; ui.menu = null; ui.presets = false; ui.heightMenu = true; render(); },
+  "height-menu-close": () => { ui.heightMenu = false; render(); },
+  "height-mode": (el) => { ui.heightMenu = false; setState((s) => { s.height.mode = el.dataset.mode; }); },
   "hide-empty": () => setState((s) => { s.hideEmpty = !s.hideEmpty; }),
 
   // Пикер
@@ -1624,16 +1714,23 @@ function commitPickerField(input) {
     else render();
   }
 }
-// Поля экрана «Размер»: data-field="size.w" | "padding.h" | … ; пустая ширина/высота — «заполнить»
-const FIELD_LIMITS = { size: [40, 2000], padding: [0, 100], margin: [0, 100] };
+// Поля экрана «Размер»: data-field="size.w" | "height.value" | "height.max" | "padding.h" | …
+const FIELD_LIMITS = { size: [40, 2000], height: [40, 2000], padding: [0, 100], margin: [0, 100] };
 function commitSizeField(input) {
   const [group, key] = input.dataset.field.split(".");
   const raw = input.value.trim();
-  if (group === "size" && raw === "") return setState((s) => { s.size[key] = null; });
+  if (group === "size" && raw === "") return setState((s) => { s.size.w = null; });
   const n = Math.round(Number(raw));
-  if (!Number.isFinite(n) || raw === "") return render();   // неверное значение — вернуть прежнее
+  if (!Number.isFinite(n) || raw === "") return render();   // неверное или пустое значение — вернуть прежнее
   const [min, max] = FIELD_LIMITS[group];
-  setState((s) => { s[group][key] = Math.min(max, Math.max(min, n)); });
+  const v = Math.min(max, Math.max(min, n));
+  setState((s) => {
+    if (group !== "height") { s[group][key] = v; return; }
+    if (key === "max") { s.height.max = Math.max(v, s.height.min); return; }
+    // «Высота»: в режиме с ограничением — минимум, иначе ввод числа делает высоту фиксированной
+    if (s.height.mode === "limited") s.height.min = Math.min(v, s.height.max);
+    else { s.height.mode = "fixed"; s.height.value = v; }
+  });
 }
 
 settingsSlot.addEventListener("change", (e) => {
@@ -1649,12 +1746,18 @@ document.addEventListener("keydown", (e) => {
   if (e.key !== "Escape") return;
   if (ui.picker) ACTIONS["picker-cancel"]();
   else if (ui.presets) { ui.presets = false; render(); }
+  else if (ui.heightMenu) { ui.heightMenu = false; render(); }
   else if (ui.menu) { ui.menu = null; render(); }
 });
 
 // Клик мимо открытого пикера подтверждает выбор и закрывает его
 document.addEventListener("click", (e) => {
   if (ui.picker && !e.target.closest(".picker, .swatch")) { ui.picker = null; render(); }
+}, true);
+
+// Клик мимо меню высоты закрывает его
+document.addEventListener("click", (e) => {
+  if (ui.heightMenu && !e.target.closest(".hmenu, [data-action=height-menu]")) { ui.heightMenu = false; render(); }
 }, true);
 
 // Клик мимо попапа стилей закрывает его
