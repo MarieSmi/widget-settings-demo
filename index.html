@@ -822,6 +822,7 @@ button.size-fill:not([disabled]):hover { color: var(--text-link); }
 /* Тень: свотч с половинкой цвета + значение (Бабл) */
 .shadow-bubble { display: flex; align-items: center; gap: var(--sp-xs); padding-right: var(--sp-m); border-radius: 12px; white-space: nowrap; }
 .half-swatch {
+  display: block;
   position: relative;
   width: 24px;
   height: 24px;
@@ -834,6 +835,8 @@ button.size-fill:not([disabled]):hover { color: var(--text-link); }
 .half-swatch::before { content: ""; position: absolute; inset: 0; background: url("assets/checker.png") top left / 8px 8px; opacity: 0.15; }
 .half-swatch::after { content: ""; position: absolute; left: 0; top: 0; width: 50%; height: 100%; background: var(--hs-color); }
 .half-swatch--l { width: 28px; height: 28px; }
+/* Свотч тени в строке и в окне «Тень» — тоже кружок-вызов: при наведении +4 px от центра */
+.shadow-bubble:hover > .half-swatch { width: 28px; height: 28px; margin: -2px; }
 
 /* Тип линии границы */
 .line-btn { display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: var(--r-pill); color: var(--icon-secondary); }
@@ -878,7 +881,8 @@ button.size-fill:not([disabled]):hover { color: var(--text-link); }
 .sp-body { position: relative; width: 350px; margin: 0 auto; padding: var(--sp-m) var(--sp-s); }
 .sp-body::before { content: ""; position: absolute; inset: 0 4px; background: var(--bg); border-radius: 6px; }
 .sp-swatches { position: relative; display: flex; flex-wrap: wrap; gap: 8px 5px; padding: 0 4px; }
-.sp-swatches .half-swatch--l:hover { width: 32px; height: 32px; margin: -2px; }   /* как у кружков-вызовов */
+.sp-swatches > button:not(.sp-add) { display: block; width: 28px; height: 28px; }
+.sp-swatches > button:not(.sp-add):hover .half-swatch--l { width: 32px; height: 32px; margin: -2px; }   /* как у кружков-вызовов: +4 px от центра */
 .sp-add { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: var(--r-pill); color: var(--icon-secondary); }
 .sp-add:hover { background: var(--bg-hover); }
 
