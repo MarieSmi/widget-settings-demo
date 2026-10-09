@@ -336,6 +336,11 @@ button:focus-visible { outline: 2px solid var(--border-info); outline-offset: 2p
 
 /* Без фона: ни заливки, ни тени */
 .w[data-bg="off"],
+.w[data-shadow="off"],
+.w[data-shadow="off"] .w__content { box-shadow: none; }
+.w[data-radius="off"],
+.w[data-radius="off"] .w__content { border-radius: 0; }
+
 .w[data-bg="off"] .w__content {
   background: transparent;
   box-shadow: none;
@@ -907,9 +912,10 @@ button.swatch-clear:hover { color: var(--icon-secondary); }
   border-radius: 18px;
   background: var(--current, var(--bg));
 }
+/* «Нет цвета»: диагональ под 45°, как у кружка «нет фона» в палитре (а не из угла в угол вытянутой плашки) */
 .picker__current[data-none] {
   background:
-    linear-gradient(to top right, transparent calc(50% - .5px), var(--border-unaccented) calc(50% - .5px),
+    linear-gradient(135deg, transparent calc(50% - .5px), var(--border-unaccented) calc(50% - .5px),
                     var(--border-unaccented) calc(50% + .5px), transparent calc(50% + .5px)),
     var(--bg);
 }
@@ -1109,6 +1115,8 @@ const DEFAULT_STATE = {
   padding: { h: 12, v: 12 },      // внутренние отступы
   margin: { h: 0, v: 0 },         // внешние отступы
   hideEmpty: true,                // «Скрывать без данных»
+  shadow: true,                   // тень карточки (shadow_c); ✕ на экране «Стиль» убирает её в чипсы
+  radius: true,                   // скругления 8 px; ✕ — прямые углы
 };
 const CELL = { w: 557, h: 280 };
 
@@ -1148,6 +1156,8 @@ function renderWidget() {
   w.dataset.marker = isOn("marker") ? "on" : "off";
   w.dataset.bg = isOn("background") ? "on" : "off";
   w.dataset.fill = fill;
+  w.dataset.shadow = state.shadow ? "on" : "off";
+  w.dataset.radius = state.radius ? "on" : "off";
 
   w.style.setProperty("--w-title", partColor("title") || "transparent");
   w.style.setProperty("--w-marker", partColor("marker") || "transparent");
@@ -1321,6 +1331,8 @@ function styleScreenHTML() {
   const chips = [
     !isOn("title") && `<button class="chip" data-action="title-on">Заголовок</button>`,
     !markerOn && `<button class="chip" data-action="marker-on">Маркер</button>`,
+    !state.shadow && `<button class="chip" data-action="toggle" data-key="shadow">Тень</button>`,
+    !state.radius && `<button class="chip" data-action="toggle" data-key="radius">Скругления</button>`,
     isOn("title") && `<button class="chip" disabled>Иконка</button>`,
     `<button class="chip" disabled>Границы</button>`,
   ].filter(Boolean).join("");
@@ -1350,16 +1362,18 @@ function styleScreenHTML() {
             ${swatchEditor("background", "Фон", false)}
             ${bgOn ? `<button class="link" data-action="menu" data-menu="fill" aria-haspopup="menu">${FILL_LABELS[background.fill]}</button>` : ""}
           </span>
+          ${state.shadow ? `
           <span class="label">Тень</span>
-          <span class="editor"><span class="swatch-shadow"></span><span class="swatch-clear"><i class="ico ico--s" data-i="close"></i></span></span>
+          <span class="editor"><span class="swatch-shadow"></span><button class="swatch-clear" data-action="toggle" data-key="shadow" aria-label="Тень: убрать"><i class="ico ico--s" data-i="close"></i></button></span>` : ""}
+          ${state.radius ? `
           <span class="label">Скругления</span>
           <span class="editor">
             <span class="radius">
               <span class="radius__field"><svg class="icon" width="12" height="12" style="color:var(--icon-label)"><use href="#i-radius"/></svg>8</span>
               <i class="ico radius__switch" data-i="radiusSwitch"></i>
             </span>
-            <span class="swatch-clear"><i class="ico ico--s" data-i="close"></i></span>
-          </span>
+            <button class="swatch-clear" data-action="toggle" data-key="radius" aria-label="Скругления: убрать"><i class="ico ico--s" data-i="close"></i></button>
+          </span>` : ""}
         </div>
       </div>
 
@@ -1556,6 +1570,7 @@ const ACTIONS = {
   fill: (el) => { ui.menu = null; setState((s) => { s.background.fill = el.dataset.fill; }); },
   "title-on": () => setState((s) => { s.title.on = true; s.title.color ||= DEFAULT_STATE.title.color; }),
   "marker-on": () => setState((s) => { s.marker.on = true; s.marker.color ||= DEFAULT_STATE.marker.color; }),
+  toggle: (el) => setState((s) => { s[el.dataset.key] = !s[el.dataset.key]; }),   // тень, скругления
   clear: (el) => { ui.picker = null; setState((s) => { s[el.dataset.key].on = false; }); },
   swatch: (el) => {
     const key = el.dataset.key;
