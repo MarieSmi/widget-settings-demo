@@ -2112,12 +2112,9 @@ const ACTIONS = {
     setState((s) => { s.shadow = before; });
   },
 
-  // Шрифт заголовка: меню открывается так, чтобы выбранный пункт стоял на месте ссылки
+  // Шрифт заголовка: меню открывается вниз от строки — первый пункт (45 px) на уровне ссылки
   "font-menu": (el) => {
-    // Высоты пунктов из макета: 45, 43, 40…; центр выбранного пункта — на уровне центра ссылки
-    const heights = [45, 43, 40, 40, 40, 40];
-    const idx = Object.keys(FONTS).indexOf(state.font);
-    const above = 8 + heights.slice(0, idx).reduce((a, h) => a + h + 6, 0) + heights[idx] / 2;
+    const above = 8 + 45 / 2;   // отступ меню + половина первого пункта
     ui.fontMenu = ui.fontMenu ? null : popupPos(el, -30, Math.round(el.getBoundingClientRect().height / 2 - above));
     render();
   },
