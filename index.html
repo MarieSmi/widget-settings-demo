@@ -1181,6 +1181,8 @@ button.size-unit:hover { color: var(--text-link); }
   border-radius: var(--r-s);
   text-align: left;
 }
+/* Ховер (Figma 10407:106588): фон карточки, скругление 12 px; у выбранного стиля ховера нет */
+.preset[aria-pressed="false"]:hover { background: #eff0f4; border-radius: var(--r-m); }   /* Background/unaccented_hover_background-color */
 /* Превью 224×116: каждый стиль показывает свою подложку */
 .preset__shot {
   display: block;
@@ -1528,7 +1530,7 @@ function backgroundFill(hex, opacity = 100) {
 const STYLES = {
   inside:   { label: "Заголовок внутри виджета",  background: true,  title: true,  marker: true, fill: "widget" },
   outside:  { label: "Заголовок снаружи виджета", background: true,  title: true,  marker: true, fill: "content" },
-  noTitle:  { label: "Без заголовка",             background: true,  title: false, marker: true, fill: "widget" },
+  noTitle:  { label: "Без заголовка",             background: true,  title: false, marker: false, fill: "widget" },   // без заголовка и маркера
   noBg:     { label: "Виджет без фона",           background: false, title: true,  marker: true, fill: "widget" },
 };
 
@@ -2172,7 +2174,7 @@ function styleScreenHTML() {
         </div>
       </div>
 
-      <div class="chips">${chips}</div>
+      ${chips ? `<div class="chips">${chips}</div>` : ""}<!-- без чипс до низа окна только его отступ 4 px -->
     </div>
     ${menu}`;
 }
@@ -2336,7 +2338,9 @@ nativeColor.addEventListener("input", () => {
 function pickerHTML() {
   const { key, x, y, draft: part } = ui.picker;   // пикер показывает черновик, виджет — применённый цвет
   const def = DEFAULT_STATE[key];
-  const on = part.on && !!part.color;   // выключенный элемент показываем как «нет цвета», даже если цвет сохранён
+  // выключенный элемент показываем как «нет цвета», даже если цвет сохранён;
+  // у иконки цвет задан и до выбора самой иконки — показываем его
+  const on = (part.on || key === "icon") && !!part.color;
   const atDefault = on && part.color === def.color && part.opacity === def.opacity;
   const hex = on ? part.color.replace("#", "").toUpperCase() : "";
   const current = on ? partColor(key, part) : null;
@@ -2553,7 +2557,7 @@ const ACTIONS = {
     ui.picker = null;
     setState((s) => {
       s[el.dataset.key].on = false;
-      if (el.dataset.key === "title") s.marker.on = false;   // без заголовка маркер тоже убираем
+      if (el.dataset.key === "title" && ui.screen === "style") s.marker.on = false;   // на экране «Стиль» без заголовка убираем и маркер; на главном — нет
     });
   },
   swatch: (el) => {
@@ -2611,7 +2615,7 @@ const ACTIONS = {
     ui.picker = null;
     setState((s) => {
       s[key] = draft;
-      if (key === "title" && !(draft.on && draft.color)) s.marker.on = false;   // «нет цвета» у заголовка убирает и маркер
+      if (key === "title" && ui.screen === "style" && !(draft.on && draft.color)) s.marker.on = false;   // «нет цвета» у заголовка на экране «Стиль» убирает и маркер
     });
   },
   "picker-cancel": () => { ui.picker = null; render(); },
