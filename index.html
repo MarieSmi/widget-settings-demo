@@ -555,11 +555,10 @@ button.swatch-clear:hover { color: var(--icon-secondary); }
 /* Сетка «подпись — редактор» */
 .form {
   display: grid;
-  grid-template-columns: 77px 1fr;
+  grid-template-columns: max-content 1fr;   /* колонка подписей по самой широкой подписи блока, редакторы всегда через 8 px */
   gap: var(--sp-s);
   align-items: center;
 }
-.form--narrow { grid-template-columns: 52px 1fr; }
 .form > * { min-height: 24px; display: flex; align-items: center; min-width: 0; }
 .label--strong {
   color: var(--text);
@@ -675,7 +674,7 @@ button.swatch-clear:hover { color: var(--icon-secondary); }
 
 /* ---------- Экран «Размер» (Figma 11931:126178) ---------- */
 
-.size-form { display: grid; grid-template-columns: 54px auto; gap: var(--sp-s); align-items: center; }
+.size-form { display: grid; grid-template-columns: max-content auto; gap: var(--sp-s); align-items: center; }
 .size-field {
   display: flex;
   align-items: center;
@@ -1267,9 +1266,9 @@ function mainScreenHTML() {
           <button class="link" data-action="presets">${STYLES[currentStyle()].label}</button>
         </div>
         <div class="swatches">
-          ${swatchField("background", "Фон", { labelWidth: 28 })}
+          ${swatchField("background", "Фон", {})}
           ${swatchField("title", "Заголовок", { clearable: true })}
-          ${swatchField("marker", "Маркер", { clearable: true, labelWidth: 52 })}
+          ${swatchField("marker", "Маркер", { clearable: true })}
         </div>
       </div>
     </div>`;
@@ -1325,7 +1324,7 @@ function styleScreenHTML() {
          ${markerOn ? markerRow : ""}
        </div></div>`
     : markerOn
-      ? `<div class="cloud"><div class="form form--narrow">${markerRow}</div></div>`
+      ? `<div class="cloud"><div class="form">${markerRow}</div></div>`
       : "";
 
   const chips = [
