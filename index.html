@@ -525,11 +525,12 @@ button:focus-visible { outline: 2px solid var(--border-info); outline-offset: 2p
 .btn-arrow:not([disabled]):active { background: var(--bg-pale-active); }
 .cloud > .btn-arrow { position: absolute; right: var(--sp-m); top: var(--sp-s); }
 
-/* Ряд свотчей «Фон / Заголовок / Маркер» */
+/* Ряд свотчей «Фон / Заголовок / Маркер» (Figma 12098:76651): колонки по 24 px, всё по центру строки,
+   между колонками 10 px — с крестиком у фона ряд ровно занимает ширину облачка (318 px) */
 .swatches {
   display: flex;
   align-items: center;
-  gap: var(--sp-m);
+  gap: var(--sp-st);
 }
 .swatch-field { display: flex; align-items: center; gap: var(--sp-s); height: 24px; }
 .swatch-wrap { display: flex; align-items: center; gap: 2px; }
@@ -2143,7 +2144,7 @@ function styleScreenHTML() {
          <span class="label label--strong">Заголовок</span>
          <span class="editor">${swatchEditor("title", "Заголовок", true)}</span>
          <span class="label">Шрифт</span>
-         <span><button class="link" data-action="font-menu" aria-haspopup="menu">${FONTS[state.font].short} Inter · ${fontStyle(state.font).size}</button></span>
+         <span><button class="link" data-action="font-menu" aria-haspopup="menu">${FONTS[state.font].label}</button></span>
          ${state.icon.on && state.icon.glyph ? iconRowHTML() : ""}
          ${markerOn ? markerRow : ""}
        </div></div>`
@@ -2508,7 +2509,8 @@ const ACTIONS = {
     nativeColor.value = state.shadow.color;
     nativeColor.showPicker ? nativeColor.showPicker() : nativeColor.click();
   },
-  "shadow-preset": (el) => setState((s) => { s.shadow.color = el.dataset.color; s.shadow.opacity = +el.dataset.opacity; }),
+  // Готовая тень, как и цвет в палитре пикера, применяется и закрывает окно
+  "shadow-preset": (el) => { ui.shadowPalette = null; setState((s) => { s.shadow.color = el.dataset.color; s.shadow.opacity = +el.dataset.opacity; }); },
   "shadow-reset": () => setState((s) => { s.shadow = { ...structuredClone(DEFAULT_STATE.shadow), on: true }; }),
   "shadow-popup-apply": () => { ui.shadowPalette = ui.shadowEditor = null; render(); },
   "shadow-popup-cancel": () => {
@@ -2627,7 +2629,8 @@ const ACTIONS = {
   "hide-empty": () => setState((s) => { s.hideEmpty = !s.hideEmpty; }),
 
   // Пикер
-  pick: (el) => pickColor(el.dataset.color),
+  // Клик по цвету палитры (и «нет цвета») сразу применяет его и закрывает окно — как ✓
+  pick: (el) => { pickColor(el.dataset.color); ACTIONS["picker-apply"](); },
   "picker-apply": () => {
     const { key, draft } = ui.picker;
     ui.picker = null;
