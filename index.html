@@ -545,12 +545,11 @@ button:focus-visible { outline: 2px solid var(--border-info); outline-offset: 2p
 /* Ховер — как в компоненте colorBtn (Figma 10466:51085): кружок растёт с 24 до 28 px от центра,
    обводка остаётся 1 px. Отрицательный отступ сохраняет раскладку соседей. */
 .swatch:hover { width: 28px; height: 28px; margin: -2px; }
-/* Выключено: белый круг, перечёркнутый по диагонали */
+/* Выключено: белый круг, перечёркнутый по диагонали «/» — как «нет цвета» в палитре пикера */
+/* Линия — SVG-штрих 1 px, как у i-no-color в палитре; non-scaling-stroke держит 1 px и на ховере (28 px) */
 .swatch[data-off] {
-  background:
-    linear-gradient(to top right, transparent calc(50% - .5px), var(--border-unaccented) calc(50% - .5px),
-                    var(--border-unaccented) calc(50% + .5px), transparent calc(50% + .5px)),
-    var(--bg);
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1' preserveAspectRatio='none'%3E%3Cpath d='M1 0L0 1' stroke='%23d2d6da' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E") border-box 0 0 / 100% 100%,
+              var(--bg);
 }
 
 /* Крестик «убрать»: кнопка высотой со строку (24 px), глиф по центру — так ✕ стоит на одной линии
@@ -1331,8 +1330,14 @@ button.size-unit:hover { color: var(--text-link); }
 .picker__current::before { content: ""; position: absolute; inset: 0; background: url("assets/checker.png") top left / 8px 8px; opacity: 0.15; }
 .picker__current::after { content: ""; position: absolute; inset: 0; background: var(--current, transparent); }
 .picker__current[data-none]::before { display: none; }
-/* «Нет цвета» (Figma 16385:66625): пустая белая плашка; в поле HEX — подсказка #FFFFFF, прозрачность 0 % */
-.picker__current[data-none] { background: var(--bg); }
+/* «Нет цвета» (Figma 16385:66625, 12096:76614): белая плашка, перечёркнутая через центр под 45° «/»;
+   в поле HEX — подсказка #FFFFFF, прозрачность 0 — серая, как подсказка (знак % остаётся чёрным) */
+/* Линия — SVG-штрих 1 px, как у i-no-color в палитре (градиент рисует диагональ тоньше и рвано) */
+.picker__current[data-none] {
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='70' height='32'%3E%3Cpath d='M51 0L19 32' stroke='%23d2d6da'/%3E%3C/svg%3E") border-box,
+              var(--bg);
+}
+.picker__code[data-none] #picker-alpha { color: var(--icon-unaccented); }
 .picker__fields { display: flex; align-items: center; gap: var(--sp-s); }
 
 /* Поля с подчёркиванием */
@@ -1695,6 +1700,11 @@ function applyStyle(key) {
   state.marker.on = s.marker;
   state.background.on = s.background;
   state.background.fill = s.fill;
+  if (s.background) {
+    // стили с фоном включают и тень; если фон был «нет цвета» — возвращаем цвет по умолчанию
+    if (!state.background.color) Object.assign(state.background, { color: DEFAULT_STATE.background.color, opacity: DEFAULT_STATE.background.opacity });
+    state.shadow.on = true;
+  }
   render();
 }
 
@@ -1785,7 +1795,7 @@ function mainScreenHTML() {
           <button class="link" data-action="presets">${STYLES[currentStyle()].label}</button>
         </div>
         <div class="swatches">
-          ${swatchField("background", "Фон", {})}
+          ${swatchField("background", "Фон", { clearable: true })}
           ${swatchField("title", "Заголовок", { clearable: true })}
           ${swatchField("marker", "Маркер", { clearable: true })}
         </div>
@@ -2372,7 +2382,7 @@ function pickerHTML() {
         <button class="picker__close" data-action="picker-cancel" aria-label="Закрыть"><svg><use href="#i-picker-close"/></svg></button>
       </header>
       <div class="picker__body">
-        <div class="pcloud picker__code">
+        <div class="pcloud picker__code" ${current ? "" : "data-none"}>
           <span class="picker__current" ${current ? `style="--current:${current}"` : "data-none"}></span>
           <span class="picker__fields">
             <span class="ufield ufield--format">HEX<i class="ico ico--s" data-i="formatArrow"></i></span>
@@ -2565,6 +2575,7 @@ const ACTIONS = {
     setState((s) => {
       s[el.dataset.key].on = false;
       if (el.dataset.key === "title" && ui.screen === "style") s.marker.on = false;   // на экране «Стиль» без заголовка убираем и маркер; на главном — нет
+      if (el.dataset.key === "background") s.shadow.on = false;                       // без фона убираем и тень
     });
   },
   swatch: (el) => {
