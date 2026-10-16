@@ -2490,18 +2490,7 @@ const ACTIONS = {
     for (const k of ["title", "marker"]) { s[k].on = true; s[k].color ||= DEFAULT_STATE[k].color; }
   }),
   "marker-on": () => setState((s) => { s.marker.on = true; s.marker.color ||= DEFAULT_STATE.marker.color; }),
-  toggle: (el) => {   // тень, скругления, границы
-    closeAppearancePopups();
-    setState((s) => {
-      const key = el.dataset.key;
-      s[key].on = !s[key].on;
-      // тени без фона не бывает: включение тени без фона включает и фон (цвет по умолчанию, если был «нет цвета»)
-      if (key === "shadow" && s.shadow.on && !isOn("background")) {
-        s.background.on = true;
-        if (!s.background.color) Object.assign(s.background, { color: DEFAULT_STATE.background.color, opacity: DEFAULT_STATE.background.opacity });
-      }
-    });
-  },
+  toggle: (el) => { closeAppearancePopups(); setState((s) => { s[el.dataset.key].on = !s[el.dataset.key].on; }); },   // тень, скругления, границы
 
   // Переключатель «по сторонам / по углам»; при сворачивании значения выравниваются по первому
   split: (el) => setState((s) => {
