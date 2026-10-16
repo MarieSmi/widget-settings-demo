@@ -1512,7 +1512,8 @@ paintIcons();
 // Палитры пикеров — из Figma (узлы 11931:124382, 11931:124403, 11931:124361).
 // null — «нет цвета» (первый кружок с диагональю).
 const PALETTES = {
-  title: [null, "#000000", "#999999", "#8991a9", "#2562aa", "#5a49ab", "#cc3d00", "#c2140a", "#e6a119", "#298e3c"],
+  // у текста нет «нет цвета»: заголовок выключают крестиком; цвета — «Типовые цвета» (Figma 12104:72073)
+  title: ["#000000", "#999999", "#8991a9", "#2562aa", "#313e78", "#5a49ab", "#cc3d00", "#c2140a", "#e6a119", "#298e3c"],
   marker: [null, "#0085f2", "#2562aa", "#c2140a", "#f47843", "#e6a119", "#298e3c", "#5a49ab", "#cccccc", "#8991a9"],
   // Фон: белый и 8 пастельных градиентов (−69.6°, цвет → белый)
   background: [null, "#ffffff", "#ebf4ff", "#eeebff", "#ffeceb", "#fff8eb", "#ebffee", "#fff1eb", "#f8f8f8", "#ebfdff"],
@@ -1637,10 +1638,13 @@ const wTitle = document.getElementById("w-title");
 const wIcon = document.getElementById("w-icon");
 
 function renderWidget() {
+  // Предпросмотр заголовка из черновика пикера (выключенный заголовок, открыт пикер текста)
+  const title = ui.picker?.preview ? ui.picker.draft : state.title;
+  const titleOn = title.on && !!title.color;
   // Без заголовка «фон только на контенте» не отличим от фона на всём виджете
-  const fill = isOn("title") ? state.background.fill : "widget";
+  const fill = titleOn ? state.background.fill : "widget";
 
-  w.dataset.title = isOn("title") ? "on" : "off";
+  w.dataset.title = titleOn ? "on" : "off";
   w.dataset.marker = isOn("marker") ? "on" : "off";
   w.dataset.bg = isOn("background") ? "on" : "off";
   w.dataset.fill = fill;
@@ -1654,7 +1658,7 @@ function renderWidget() {
   w.style.setProperty("--w-border-color", bd.color ? rgba(bd.color, bd.opacity) : "transparent");
   w.style.setProperty("--w-border-style", bd.style);
 
-  w.style.setProperty("--w-title", partColor("title") || "transparent");
+  w.style.setProperty("--w-title", partColor("title", title) || "transparent");
   w.style.setProperty("--w-marker", partColor("marker") || "transparent");
   w.style.setProperty("--w-fill", partColor("background") || "transparent");
 
@@ -1701,11 +1705,10 @@ function applyStyle(key) {
   state.marker.on = s.marker;
   state.background.on = s.background;
   state.background.fill = s.fill;
-  if (s.background) {
-    // стили с фоном включают и тень; если фон был «нет цвета» — возвращаем цвет по умолчанию
-    if (!state.background.color) Object.assign(state.background, { color: DEFAULT_STATE.background.color, opacity: DEFAULT_STATE.background.opacity });
-    state.shadow.on = true;
-  }
+  // тени без фона не бывает: стили с фоном включают и тень, «без фона» — убирает
+  state.shadow.on = s.background;
+  // если фон был «нет цвета» — возвращаем цвет по умолчанию
+  if (s.background && !state.background.color) Object.assign(state.background, { color: DEFAULT_STATE.background.color, opacity: DEFAULT_STATE.background.opacity });
   render();
 }
 
@@ -2434,6 +2437,13 @@ function openPicker(el) {
     y: Math.round(sw.top - slot.top + dy),
     draft: structuredClone(state[key]),   // правки в пикере; ✓ переносит их в state, всё остальное отбрасывает
   };
+  // У текста нет «нет цвета»: у выключенного заголовка пикер открывается с чёрным (цвет по умолчанию),
+  // и виджет сразу показывает заголовок как предпросмотр черновика. В state (и стиль) — только по ✓ / выбору цвета;
+  // закрытие без выбора оставляет заголовок выключенным
+  if (key === "title" && !isOn("title")) {
+    Object.assign(ui.picker.draft, { on: true, color: DEFAULT_STATE.title.color, opacity: DEFAULT_STATE.title.opacity });
+    ui.picker.preview = true;
+  }
   render();
 }
 
@@ -2480,7 +2490,18 @@ const ACTIONS = {
     for (const k of ["title", "marker"]) { s[k].on = true; s[k].color ||= DEFAULT_STATE[k].color; }
   }),
   "marker-on": () => setState((s) => { s.marker.on = true; s.marker.color ||= DEFAULT_STATE.marker.color; }),
-  toggle: (el) => { closeAppearancePopups(); setState((s) => { s[el.dataset.key].on = !s[el.dataset.key].on; }); },   // тень, скругления, границы
+  toggle: (el) => {   // тень, скругления, границы
+    closeAppearancePopups();
+    setState((s) => {
+      const key = el.dataset.key;
+      s[key].on = !s[key].on;
+      // тени без фона не бывает: включение тени без фона включает и фон (цвет по умолчанию, если был «нет цвета»)
+      if (key === "shadow" && s.shadow.on && !isOn("background")) {
+        s.background.on = true;
+        if (!s.background.color) Object.assign(s.background, { color: DEFAULT_STATE.background.color, opacity: DEFAULT_STATE.background.opacity });
+      }
+    });
+  },
 
   // Переключатель «по сторонам / по углам»; при сворачивании значения выравниваются по первому
   split: (el) => setState((s) => {
@@ -2637,6 +2658,7 @@ const ACTIONS = {
     setState((s) => {
       s[key] = draft;
       if (key === "title" && ui.screen === "style" && !(draft.on && draft.color)) s.marker.on = false;   // «нет цвета» у заголовка на экране «Стиль» убирает и маркер
+      if (key === "background" && !(draft.on && draft.color)) s.shadow.on = false;   // тени без фона не бывает: «нет цвета» у фона убирает и тень
     });
   },
   "picker-cancel": () => { ui.picker = null; render(); },
