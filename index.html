@@ -1,7 +1,10 @@
 <title>Настройка виджета</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap">
+<!-- Рамка демо: шапка, сцена 1600×900 и вспомогательная панель справа (github.com/MarieSmi/demo-frame) -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/MarieSmi/demo-frame@1.0.0/demo-frame.css">
+<script src="https://cdn.jsdelivr.net/gh/MarieSmi/demo-frame@1.0.0/demo-frame.js"></script>
 <style>
 /* Сцена: окно настроек слева от виджета, как в макете (Figma 11931:124266).
    Прототип повторяет светлый интерфейс продукта, поэтому тема одна — светлая. */
@@ -123,11 +126,11 @@
 }
 .ico--s { width: 16px; height: 16px; font-family: "cbuc-icons"; font-size: 16px; }
 
-html, body { height: 100%; }
+html, body { height: 100%; overflow: hidden; }
 
 body {
   margin: 0;
-  background: var(--page-bg);
+  background: var(--bg);
   color: var(--text);
   font-family: var(--font);
   font-size: var(--fs-m);
@@ -150,12 +153,20 @@ button:focus-visible { outline: 2px solid var(--border-info); outline-offset: 2p
 
 /* ---------- Сцена ---------- */
 
+/* Сцена 1600×900 в левом верхнем углу — расставляет и масштабирует demo-frame */
 .stage {
-  min-height: 100%;
-  overflow-x: auto;
-  padding: 88px 16px 48px;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1600px;
+  height: 900px;
+  box-sizing: border-box;
+  overflow: hidden;
+  padding-top: 88px;
   display: flex;
   justify-content: center;
+  border-radius: var(--r-s);
+  background: var(--page-bg);
 }
 
 /* Ширина сцены = окно + зазор + виджет; окно позиционируется от виджета, как в макете */
@@ -1404,11 +1415,6 @@ button.size-unit:hover { color: var(--text-link); }
 .plink { color: var(--text-secondary); white-space: nowrap; }
 .plink:not([disabled]):hover { text-decoration: underline; text-underline-offset: 3px; }
 .plink[disabled] { cursor: default; }
-
-/* ---------- Узкие экраны ---------- */
-@media (max-width: 960px) {
-  .stage { justify-content: flex-start; padding-top: 64px; }
-}
 </style>
 
 <!-- Векторные иконки. Остальные иконки — глифы шрифта cbuc-icons (см. ICONS в скрипте).
@@ -1447,7 +1453,7 @@ button.size-unit:hover { color: var(--text-link); }
   </defs>
 </svg>
 
-<main class="stage">
+<main class="stage" id="stage">
   <div class="scene" id="scene">
     <!-- Окно настроек (этапы 3–5) -->
     <div class="settings-slot" id="settings"></div>
@@ -2125,11 +2131,12 @@ function lineMenuHTML() {
     </div>`;
 }
 
-// Позиция попапа рядом с элементом, в координатах слота окна настроек
+// Позиция попапа рядом с элементом, в координатах слота окна настроек.
+// Сцена масштабирована рамкой демо, поэтому экранные пиксели делятся на frame.scale
 function popupPos(el, dx = 0, dy = 0) {
   const b = el.getBoundingClientRect();
   const s = settingsSlot.getBoundingClientRect();
-  return { x: Math.round(b.left - s.left + dx), y: Math.round(b.top - s.top + dy) };
+  return { x: Math.round((b.left - s.left) / frame.scale + dx), y: Math.round((b.top - s.top) / frame.scale + dy) };
 }
 
 function styleScreenHTML() {
@@ -2433,8 +2440,8 @@ function openPicker(el) {
   ui.menu = null;
   ui.picker = {
     key,
-    x: Math.round(sw.left - slot.left + dx),
-    y: Math.round(sw.top - slot.top + dy),
+    x: Math.round((sw.left - slot.left) / frame.scale + dx),
+    y: Math.round((sw.top - slot.top) / frame.scale + dy),
     draft: structuredClone(state[key]),   // правки в пикере; ✓ переносит их в state, всё остальное отбрасывает
   };
   // У текста нет «нет цвета»: у выключенного заголовка пикер открывается с чёрным (цвет по умолчанию),
@@ -2829,6 +2836,18 @@ function render() {
   renderWidget();
   renderSettings();
 }
+
+// Рамка демо: вспомогательная панель справа (без шапки); сцена масштабируется вместе с ней под окно
+const frame = DemoFrame.mount({
+  stage: document.getElementById("stage"),
+  scenarios: [
+    { id: "demo", title: "Демо-виджет" },
+    { id: "blocks", title: "Виджет с блочным контентом", disabled: true },   // пока не сделан
+  ],
+  value: { scenario: "demo" },
+  links: [{ title: "Макет в Figma", href: "https://www.figma.com/design/44fX18O5Huk4hmoaANMNIC/?node-id=11931-124266" }],
+  team: [{ label: "Design", name: "Мария Смирнова" }, { label: "Develop" }],
+});
 
 render();
 </script>
