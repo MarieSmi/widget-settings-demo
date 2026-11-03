@@ -711,10 +711,11 @@ button.swatch-clear:hover { color: var(--icon-secondary); }
 
 .cloud--pads { gap: var(--sp-2xs); }
 .cloud__title { display: flex; align-items: center; height: 24px; font-size: var(--fs-l); font-weight: var(--fw-bold); }
-.pads { display: flex; flex-direction: column; gap: var(--sp-s); }
-.pad-row { position: relative; display: flex; align-items: flex-start; gap: var(--sp-s); min-height: 24px; }
+/* Общая сетка рядов: поля в 8px от самой длинной метки группы, в любом режиме ряда */
+.pads { display: grid; grid-template-columns: max-content 1fr auto; gap: var(--sp-s); align-items: start; }
+.pad-row { display: contents; }
 .pad-row > .label { display: flex; align-items: center; height: 24px; }
-.pad-row--outer { gap: 28px; }      /* поля обоих рядов на одной вертикали, как в макете */
+.pads .row-switch { position: static; }
 .pad-fields { display: flex; gap: var(--sp-s); }
 .pad-field {
   display: flex;
@@ -2291,8 +2292,8 @@ function sizeScreenHTML() {
   const heightField = sizeField("h", "Высота");
   const maxField = edgeRows;
   // Отступы: два поля (по горизонтали / вертикали) или блок по сторонам (PropertyGrid 23882:236302)
-  const padRow = (group, label, cls) => `
-    <div class="pad-row ${state[group].split ? "" : cls}">
+  const padRow = (group, label) => `
+    <div class="pad-row">
       <span class="label">${label}</span>
       ${state[group].split ? sideBox(group, label) : `
       <span class="pad-fields">
@@ -2309,7 +2310,7 @@ function sizeScreenHTML() {
       </div>
       <div class="cloud cloud--pads">
         <span class="cloud__title">Отступы</span>
-        <div class="pads">${padRow("padding", "Внутренние", "")}${padRow("margin", "Внешние", "pad-row--outer")}</div>
+        <div class="pads">${padRow("padding", "Внутренние")}${padRow("margin", "Внешние")}</div>
       </div>
       <div class="cloud">
         <div class="toggle-row">
