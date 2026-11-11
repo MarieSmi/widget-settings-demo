@@ -1,11 +1,11 @@
+<meta charset="utf-8">
 <title>Настройка виджета</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="assets/fonts/inter.css">
 <!-- Токены и рамка демо из ui-kit (github.com/MarieSmi/ui-kit): шапка, сцена 1600×900 и вспомогательная панель справа -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/MarieSmi/ui-kit@1.0.0/tokens.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/MarieSmi/ui-kit@1.0.0/components/demo-frame/demo-frame.css">
-<script src="https://cdn.jsdelivr.net/gh/MarieSmi/ui-kit@1.0.0/components/demo-frame/demo-frame.js"></script>
+<link rel="stylesheet" href="vendor/ui-kit/tokens.css">
+<link rel="stylesheet" href="vendor/ui-kit/components/demo-frame/demo-frame.css">
+<link rel="stylesheet" href="vendor/ui-kit/components/toolbar/toolbar.css">
+<script src="vendor/ui-kit/components/demo-frame/demo-frame.js?v=top4"></script>
 <style>
 /* Сцена: окно настроек слева от виджета, как в макете (Figma 11931:124266).
    Прототип повторяет светлый интерфейс продукта, поэтому тема одна — светлая. */
@@ -154,7 +154,9 @@ button:focus-visible { outline: 2px solid var(--border-info); outline-offset: 2p
 
 /* ---------- Сцена ---------- */
 
-/* Сцена 1600×900 в левом верхнем углу — расставляет и масштабирует demo-frame */
+/* Сцена 1600×900 в левом верхнем углу — расставляет и масштабирует demo-frame.
+   Окружение виджета — «Главная страница» в редакторе (Figma 10316:68601): шапка, дашборд с заглушками,
+   панель операций, уведомления и боковая панель. Всё, кроме виджета и окна настроек, — декорация. */
 .stage {
   position: absolute;
   left: 0;
@@ -163,19 +165,275 @@ button:focus-visible { outline: 2px solid var(--border-info); outline-offset: 2p
   height: 900px;
   box-sizing: border-box;
   overflow: hidden;
-  padding-top: 88px;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   border-radius: var(--r-s);
-  background: var(--page-bg);
+  background: #eae9ee;
 }
 
-/* Ширина сцены = окно + зазор + виджет; окно позиционируется от виджета, как в макете */
-.scene {
+/* Глифы иконочных шрифтов: 14 / 20 / 24 px */
+.g {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  box-sizing: border-box;
+  padding-bottom: 1px;
+  font-style: normal;
+  line-height: normal;
+  white-space: nowrap;
+  user-select: none;
+}
+.g--14 { width: 14px; height: 14px; font-family: "cbuc-icons"; font-size: 14px; }
+.g--20 { width: 24px; height: 24px; font-family: "cbuc-icons"; font-size: 20px; }
+.g--24 { width: 24px; height: 24px; font-family: "cbuc-icons24"; font-size: 24px; }
+/* В cbuc-icons24 нет глифов EBBC и EBF9 (данные, структура) — берём их из cbuc-icons: 20 px ≈ визуально 24 px */
+
+/* Шапка страницы */
+.env-head {
+  flex: none;
+  display: flex;
+  align-items: center;
+  height: 44px;
+}
+.env-head__side {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+}
+.env-head__side--l { padding-left: 20px; }
+.env-head__side--r { justify-content: flex-end; gap: var(--sp-m); padding: 0 var(--sp-m) 0 24px; }
+.env-title { font-size: 18px; letter-spacing: -0.2538px; color: var(--text); white-space: nowrap; }
+
+/* Переключатель размера экрана */
+.env-view {
+  display: flex;
+  gap: var(--sp-3xs);
+  height: 24px;
+  padding: var(--sp-3xs);
+  box-sizing: border-box;
+  border-radius: var(--r-pill);
+  background: var(--bg-pale);
+}
+.env-view__b {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 20px;
+  border-radius: var(--r-pill);
+  color: var(--text-label-contrast);
+}
+.env-view__b--on { background: var(--bg); color: var(--text); }
+.env-cmds { display: flex; align-items: center; gap: var(--sp-xs); }
+.env-cmd {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-pill);
+  color: var(--icon-unaccented);
+}
+.env-cmd--on { color: var(--icon-secondary_icon-color); cursor: pointer; }   /* есть применённые изменения: «назад» и «сброс» активны */
+.env-cmd--on:hover { color: var(--icon-secondary_hover_icon-color); background: rgba(51, 51, 51, 0.1); }
+.env-close { background: var(--bg-pale); color: var(--icon-secondary_icon-color); }   /* токен ui-kit Icon/secondary_icon-color */
+.env-close { cursor: pointer; }
+.env-close:hover { background: rgba(51, 51, 51, 0.1); color: var(--icon-secondary_hover_icon-color); }   /* Figma 10316:68672 + токен ui-kit Icon/secondary_hover_icon-color */
+
+/* Тело: экран с дашбордом + боковая панель */
+.env-content { position: relative; flex: 1; min-height: 0; display: flex; }
+.env-screens {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  justify-content: center;
+  padding: 0 var(--sp-m);
+}
+.env-dash {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  max-width: 1440px;
+  height: 100%;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  padding: var(--sp-s) var(--sp-s) 0;
+  background: #f8f8f8;
+  border: 1px solid var(--border);
+  border-bottom: 0;
+  border-radius: var(--r-s) var(--r-s) 0 0;
+}
+.env-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-s);
+  isolation: isolate;
+}
+
+/* Строка с виджетом: пунктирная рамка выбранной строки */
+.env-row1 {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-s);
+  border: 1px dashed var(--border-info);
+  border-radius: var(--r-3xs);
+}
+.env-row2 { position: relative; z-index: 1; display: flex; height: 240px; }
+
+/* Соседний блок-заглушка */
+.env-card {
+  flex: 1;
+  min-width: 0;
+  align-self: stretch;
+  display: flex;
+  filter: drop-shadow(var(--shadow-widget));
+}
+.env-card__in {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: var(--sp-m);
+  border-radius: var(--r-s);
+}
+.env-card--blue .env-card__in {
+  background: linear-gradient(90deg, rgba(255,255,255,.5), rgba(255,255,255,.5)), linear-gradient(-53.5deg, #ebf4ff 0%, #fff 100%);
+}
+.env-card--green .env-card__in {
+  background: linear-gradient(90deg, rgba(255,255,255,.5), rgba(255,255,255,.5)), linear-gradient(-29.9deg, #ebffee 0%, #fff 100%);
+}
+.sk-title {
   position: relative;
   flex: none;
-  width: calc(var(--window-w) + var(--window-gap) + var(--widget-w));
-  padding-left: calc(var(--window-w) + var(--window-gap));
+  width: 109px;
+  height: 16px;
+  border-radius: var(--r-pill);
+  background: rgba(0, 0, 0, 0.06);
+}
+.sk-title::before {
+  content: "";
+  position: absolute;
+  left: -12px;
+  top: 0;
+  width: 4px;
+  height: 16px;
+  border-radius: 0 4px 4px 0;
+  background: var(--bg-pale-active);
+}
+.sk-block { flex: none; width: 100%; height: 80px; border-radius: var(--r-s); background: rgba(0, 0, 0, 0.03); }
+
+/* Ячейка виджета: окно настроек слева, виджет в рамке выделения */
+/* Рамка виджета ложится ровно поверх пунктира строки (сверху, справа, снизу): иначе две линии рядом при дробном
+   масштабе сцены сливаются в рваную двойную линию */
+.env-widget { position: relative; flex: none; width: var(--widget-w); margin: -1px -1px -1px 0; }
+
+/* Ручка изменения ширины дашборда */
+.env-drag { position: absolute; left: -16px; top: -1px; width: 16px; height: 753px; pointer-events: none; }
+.env-drag::after {
+  content: "";
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  width: 4px;
+  height: 30px;
+  margin-top: -15px;
+  border-radius: 14px;
+  background: var(--bg-pale-active);
+}
+
+/* Панель операций (приглушена) */
+.env-ops {
+  flex: none;
+  width: 52px;
+  height: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 10px 12px;
+}
+.env-ops__grp { display: flex; flex-direction: column; align-items: center; gap: 16px; opacity: 0.3; }
+.env-ops__pill { display: flex; padding: 4px; border-radius: 24px; background: #e5e7eb; color: var(--icon-secondary); }
+.env-ops__pill .g { font-size: 18px; }
+.env-ops__btn { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: var(--components-button-border-radius_button); background: var(--background-contrast-pale_color); color: #333; }   /* Figma 12794:78784: кружок 32 px, иконка cbuc-icons 16 px */
+.env-ops__btn .g { width: 16px; height: 16px; font-size: 16px; font-family: "cbuc-icons"; padding-bottom: 1px; box-sizing: content-box; display: flex; align-items: center; justify-content: center; }
+
+/* Колонка уведомлений */
+.env-notif {
+  flex: none;
+  width: 250px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-s);
+  overflow: hidden;
+  border-radius: 8px;
+}
+.env-ncard {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: var(--sp-m);
+  border-radius: var(--r-s);
+  background: var(--bg);
+  overflow: hidden;
+}
+.env-ngrp { display: flex; flex-direction: column; gap: var(--sp-s); }
+.env-nhead { display: flex; gap: var(--sp-xs); }
+.env-nrow { display: flex; gap: var(--sp-xs); }
+.env-nlines { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: var(--sp-2xs); }
+.pill { flex: none; height: 12px; border-radius: var(--r-pill); background: var(--bg-pale-hover); }
+.pill--dot { width: 12px; }
+.sq { flex: none; border-radius: var(--r-s); background: var(--bg-pale-hover); }
+.env-ncard .sk-title { background: var(--bg-pale-hover); }
+.env-ncard .sk-title::before { background: var(--bg-pale-hover); }
+.env-tiles { display: flex; gap: var(--sp-s); }
+.env-tile { flex: none; display: flex; flex-direction: column; gap: var(--sp-xs); }
+.env-ncard--media { display: flex; flex-direction: column; gap: var(--sp-s); }
+.env-media { display: flex; gap: var(--sp-s); }
+.env-media__text { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: space-between; }
+.env-media__lines { display: flex; flex-direction: column; gap: var(--sp-xs); }
+
+/* Боковая панель */
+.env-side {
+  flex: none;
+  width: 56px;
+  height: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--sp-2xs) var(--sp-s);
+}
+.env-side__nav { display: flex; flex-direction: column; align-items: center; gap: var(--sp-3xs); }
+.env-side__i { display: flex; padding: var(--sp-m); border-radius: var(--r-s); color: var(--icon); }
+.env-side__i--primary { color: #db4200; }
+.env-side__i { cursor: pointer; }
+.env-side__i:hover { background: var(--bg);  }   /* белая плитка при наведении */
+.env-help {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  box-sizing: border-box;
+  border-radius: 16px;
+  background: var(--toolbar-bg);
+  border: 1px solid var(--toolbar-bg-active);
+  color: var(--icon-info);
+  font-size: 20px;
+  font-weight: 600;
 }
 
 /* ---------- Виджет в режиме редактирования ---------- */
@@ -209,53 +467,52 @@ button:focus-visible { outline: 2px solid var(--border-info); outline-offset: 2p
   flex-direction: column;
 }
 
-.handle {
-  z-index: 2;
-  position: absolute;
-  width: 8px;
-  height: 8px;
-  background: var(--bg);
-  border: 1px solid var(--border-info);
-  border-radius: 7px;
-  transform: translate(-50%, -50%);
-  pointer-events: none;
+/* Кружки на серединах сторон — компонент ui-kit «Виджет» (.wg__plus), https://mariesmi.github.io/ui-kit/catalog/#widget
+   Покой: белый кружок 8 px с рамкой info. Наведение и фокус: кружок 16 px цвета info с белым плюсом, нажатие — info hover. */
+.widget-frame {
+  --wg-accent: var(--border-info_border-color);
+  --wg-accent-hover: var(--border-info_hover_border-color);
 }
-.handle--top    { left: 50%; top: 0; }
-.handle--bottom { left: 50%; top: 100%; }
-.handle--left   { left: 0;   top: 50%; }
-.handle--right  { left: 100%; top: 50%; }
+.wg__plus {
+  --wg-plus-bg: var(--background-background-color);
+  --wg-plus-bd: var(--wg-accent);
+  position: absolute; z-index: 2; box-sizing: border-box;
+  width: 20px; height: 20px;
+  margin: 0; padding: 0; border: 0;
+  background: none; cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.wg__plus::before {
+  content: ""; position: absolute; inset: 30%; box-sizing: border-box;
+  border: 1px solid var(--wg-plus-bd);
+  border-radius: var(--border-radius-border-radius_2xl);
+  background: var(--wg-plus-bg);
+}
+.wg__plus::after {
+  content: "\e95d";
+  position: absolute; inset: 0;
+  display: none; align-items: center; justify-content: center;
+  font-family: var(--icon-font-family-2xs_icon_font-family); font-size: var(--icon-icon_size-icon-size_2xs);
+  font-weight: normal; font-style: normal; line-height: 1;
+  color: var(--icon-contrast_icon-color);
+}
+.wg__plus:focus-visible, .wg__plus:hover { --wg-plus-bg: var(--wg-accent); }
+.wg__plus:active { --wg-plus-bg: var(--wg-accent-hover); }
+.wg__plus:focus-visible::before, .wg__plus:hover::before { inset: 10%; border-color: var(--wg-plus-bg); }
+.wg__plus:focus-visible::after, .wg__plus:hover::after { display: flex; }
+.wg__plus:focus-visible { outline: none; }
+.wg__plus--up    { top: -10px;    left: calc(50% - 10px); }
+.wg__plus--down  { bottom: -10px; left: calc(50% - 10px); }
+.wg__plus--left  { left: -10px;   top: calc(50% - 10px); }
+.wg__plus--right { right: -10px;  top: calc(50% - 10px); }
 
-/* Тулбар — только для вида, клики не обрабатываются */
-.toolbar {
+/* Тулбар виджета — компонент ui-kit «toolbar» (vendor/ui-kit/components/toolbar), стиль info.
+   Здесь только положение над виджетом. */
+.widget-frame > .tb {
   position: absolute;
   left: 0;
   top: -42px;
-  display: flex;
-  background: var(--toolbar-bg);
-  border-radius: var(--r-xs);
-  filter: drop-shadow(var(--shadow-toolbar));
-  overflow: hidden;
-  pointer-events: none;
 }
-.toolbar__item {
-  display: flex;
-  width: 36px;
-  padding: 4px 6px;
-  color: var(--icon);
-}
-/* Обводка поверх кнопок: тулбар 180×32, как в макете */
-.toolbar::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  box-shadow: inset 0 0 0 1px var(--toolbar-border);
-}
-.toolbar__item--active {
-  background: var(--toolbar-bg-active);
-  color: var(--icon-info);
-}
-.toolbar__item--danger { color: var(--icon-danger); }
 
 /* ---------- Виджет ----------
    --w-fill: заливка фона (цвет или градиент), --w-title: цвет заголовка, --w-marker: цвет маркера.
@@ -269,9 +526,11 @@ button:focus-visible { outline: 2px solid var(--border-info); outline-offset: 2p
   --w-marker: var(--brand);
   --pad-t: 12px; --pad-r: 12px; --pad-b: 12px; --pad-l: 12px;   /* внутренние отступы — экран «Размер» */
   --w-radius: 8px;                                            /* скругления по углам */
+  --col-a: 88px; --col-b: 96px; --col-gap: 16px;               /* колонки таблицы в контенте */
   --w-shadow: var(--shadow-widget);                           /* тень */
   position: relative;
   flex: 1;
+  min-height: 0;   /* при фиксированной высоте не растёт за слот (в режиме «На контенте» overflow: visible) */
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -287,7 +546,7 @@ button:focus-visible { outline: 2px solid var(--border-info); outline-offset: 2p
   align-items: center;
   height: 24px;
   margin-top: var(--pad-t);
-  padding-right: var(--pad-r);
+  padding-right: 0;   /* правый отступ уже на карточке (.w), чтобы колонки в шапке стояли над числами */
   flex: none;
 }
 .w__title {
@@ -329,22 +588,105 @@ button:focus-visible { outline: 2px solid var(--border-info); outline-offset: 2p
   padding-top: 2px;
 }
 
-/* Заглушка контента: три плашки 246 / 145 / 204 × 24 */
-.w__lines {
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-s);
-  width: 246px;
-  max-width: 100%;
-  padding-bottom: 2px;   /* contentDashWidget: высота виджета «по контенту» — 156, как в макете */
+/* Контент виджета — таблица «Компании»: название (сжимается с «…», город остаётся), две числовые колонки */
+.w__table {
+  display: flex; flex-direction: column;
+  height: 100%; box-sizing: border-box;
+  font-size: var(--fs-m, 14px);
+  color: var(--text);
+  padding-bottom: 16px;   /* место под кнопку «ещё» */
 }
-.w__line {
-  height: 24px;
-  border-radius: var(--r-xs);
-  background: var(--bg-pale);
+.w__cols {
+  flex: none; display: flex; gap: var(--col-gap); margin-left: auto; padding-left: var(--col-gap);
+  font-size: 12px; color: var(--text-label);
 }
-.w__line:nth-child(2) { width: 145px; }
-.w__line:nth-child(3) { width: 204px; }
+.w__col { flex: none; display: flex; justify-content: flex-end; align-items: center; gap: 2px; white-space: nowrap; }
+.w__col--a { width: var(--col-a); overflow: visible; }
+.w__col--b { width: var(--col-b); }
+.w__col svg { flex: none; color: var(--icon-label); }
+.w__content { overflow: hidden; }
+
+/* Вариант «Виджет с блочным контентом» (Новости): карточки фиксированного размера, лишние обрезаются шириной виджета */
+.w__news{display:none;gap:8px;height:224px;flex:none}
+.w[data-kind="blocks"] .w__news{display:flex}
+.w[data-kind="blocks"] .w__table,.w[data-kind="blocks"] .w__cols,.w[data-kind="blocks"] .w__lines,.w[data-kind="blocks"] .moreButton{display:none}
+/* Заголовок не должен прилипать к маркеру при левом отступе 0: добираем до 12 px, а при отступе ≥ 12 своих добавок нет */
+/* «Новости» без заголовка: плашки от самого верха (стандартные 12 px отступа считаются как 0, лишнее добавляется) */
+.w[data-kind="blocks"][data-title="off"] .w__content,
+.w[data-kind="blocks"][data-title="off"][data-fill="content"] .w__content{padding-top:max(0px, calc(var(--pad-t) - 12px))}
+.w[data-kind="blocks"] .w__header{padding-left:max(0px, calc(12px - var(--pad-l)))}
+.w[data-kind="blocks"][data-fill="content"] .w__header{padding-left:max(var(--pad-l), 12px)}
+.w[data-kind="blocks"]:not([data-fill="content"]) .w__content{margin-right:calc(-1 * var(--pad-r))}
+.ncard{position:relative;flex:none;width:156px;height:224px;box-sizing:border-box;border-radius:8px;overflow:hidden;background:var(--nc-bg);color:#000;display:flex;flex-direction:column;padding:0 12px 12px}
+.ncard__cover{flex:none;margin:0 -12px 0;height:100px;background:var(--nc-cover,none);-webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 35%,transparent 100%);mask-image:linear-gradient(to bottom,#000 0%,#000 35%,transparent 100%)}
+.ncard--thumb .ncard__cover{height:auto;margin:12px 0 8px;background:none;-webkit-mask-image:none;mask-image:none}
+.ncard__thumb{width:64px;height:64px;border-radius:8px;background:url(https://images.unsplash.com/photo-1764399124980-69e858c601a3?w=160&q=70&auto=format&fit=crop) center / cover no-repeat, linear-gradient(180deg,#8fb4e8 0%,#5c7fc0 45%,#2f4a86 100%)}
+.ncard__t{margin:0 0 4px;font-size:16px;line-height:20px;font-weight:var(--fw-bold);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ncard__d{margin:0;font-size:14px;line-height:20px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ncard__c{margin-top:auto;display:flex;align-items:center;gap:4px;font-size:14px;line-height:20px;color:inherit}
+.ncard--thumb .ncard__c{color:#7a85a8}
+.ncard--thumb .ncard__d{-webkit-line-clamp:3}
+
+/* Уникальные настройки виджета «Новости» */
+.news-set{gap:12px}
+.news-set__subs{display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border-unaccented);padding:2px 0 4px;color:var(--text-label)}
+.news-set__subs span:first-child{flex:1}
+.news-set__row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.news-set__chk{display:flex;align-items:center;gap:4px;cursor:pointer;border:0;background:none;padding:0;font:inherit;color:inherit}
+.news-set__chk i{width:14px;height:14px;box-sizing:border-box;border:1px solid var(--border-unaccented);border-radius:3px;background:#fff;display:inline-flex;align-items:center;justify-content:center}
+.news-set__chk[aria-pressed="true"] i{background:#f57c3a;border-color:#f57c3a}
+.news-set__chk[aria-pressed="true"] i::after{content:"";width:6px;height:3px;border:solid #fff;border-width:0 0 1.5px 1.5px;transform:rotate(-45deg) translate(1px,-1px)}
+.news-set__plus{color:var(--text-label);border:0;background:none;padding:0;font:inherit;text-align:left;width:max-content}
+.news-set__lbl{display:flex;align-items:center;gap:6px;color:var(--text-label)}
+.news-set__layouts{display:flex;gap:8px}
+.lay{flex:1;height:48px;padding:0;border:1px solid var(--border-border-color);border-radius:6px;background:transparent;cursor:default;pointer-events:none;display:flex;align-items:center;justify-content:center;--lc:var(--background-same-secondary_same_background-color)}
+.lay[aria-pressed="true"]{border-color:#f57c3a;--lc:#f57c3a}
+.news-set__dir{display:flex;gap:8px;color:var(--text-label)}
+
+/* Вариант «Демо-виджет»: скелетоны вместо таблицы */
+.w__lines{display:none;flex-direction:column;gap:var(--sp-s);width:246px;max-width:100%;padding-bottom:2px}
+.w__line{height:24px;border-radius:var(--r-xs);background:var(--bg-pale)}
+.w__line:nth-child(2){width:145px}
+.w__line:nth-child(3){width:204px}
+.w__line:nth-child(4){width:170px}
+.w[data-kind="demo"] .w__lines{display:flex}
+.w[data-kind="demo"] .w__table,.w[data-kind="demo"] .w__cols,.w[data-kind="demo"] .moreButton{display:none}
+/* Строки подбираются под высоту виджета (fitTable в скрипте): влезают целыми, лишние скрыты — пустых «дыр» внизу нет */
+.w__grp { display: flex; flex-direction: column; gap: 8px; }
+.w__row[hidden] { display: none; }
+.w__grp--bold { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border-pale, #e5e7eb); }
+.w__grp--main[hidden] + .w__grp--bold { margin-top: 0; padding-top: 0; border-top: 0; }
+.w__row { display: flex; align-items: baseline; gap: var(--col-gap); height: 24px; line-height: 24px; }
+.w__who { flex: 1; min-width: 0; display: flex; align-items: baseline; gap: 4px; white-space: nowrap; }
+.w__name { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.w__city { flex: none; font-size: 12px; color: var(--text-unaccented, #999); }
+.w__num { text-align: right; white-space: nowrap; }
+.w__num--a { width: var(--col-a); }
+.w__num--b { width: var(--col-b); }
+.w__grp--bold .w__name { font-weight: var(--fw-bold); }
+/* ---------- Компонент moreButton — «Показать ещё» (Figma 9620:17427) ----------
+   40×20, pill; фон pale → pale_hover → pale_active, три точки темнеют на ховере.
+   Разметка — moreButtonHTML() в скрипте. Модификатор .moreButton--static — режим редактирования:
+   состояния ховер и нажатие выключены, кнопка всегда в покое. */
+.moreButton {
+  display: flex; align-items: center; justify-content: center;
+  width: var(--inline_height-inline_height_3xl, 40px); height: 20px; margin: 0; padding: 0 8px; border: 0; box-sizing: border-box;
+  border-radius: var(--r-pill);
+  background: var(--background-contrast-pale_color);
+  color: var(--icon-label_icon-color);
+  cursor: pointer;
+}
+.moreButton:hover { background: var(--background-contrast-pale_hover_color); color: var(--icon-label_hover_icon-color); }
+.moreButton:active { background: var(--background-contrast-pale_active_color, rgba(51, 51, 51, 0.15)); color: var(--icon-label_hover_icon-color); }
+.moreButton svg { display: block; flex: none; }
+.moreButton--static, .moreButton--static:hover, .moreButton--static:active {
+  background: var(--background-contrast-pale_color); color: var(--icon-label_icon-color); cursor: default;
+}
+/* Положение в виджете: по центру нижнего края */
+.w .moreButton { position: absolute; left: 50%; bottom: 4px; transform: translateX(-50%); }
+
+/* Режим редактирования: содержимое виджета — демо, текст в нём не выделяется (в режиме просмотра выделение будет) */
+.widget-frame .w { -webkit-user-select: none; user-select: none; }
 
 /* Заголовок выключен: контент поднимается к верхнему отступу */
 .w[data-title="off"] .w__header { display: none; }
@@ -360,7 +702,7 @@ button:focus-visible { outline: 2px solid var(--border-info); outline-offset: 2p
   box-shadow: none;
   overflow: visible;
 }
-.w[data-fill="content"] .w__header { padding-left: var(--pad-l); }
+.w[data-fill="content"] .w__header { padding-left: var(--pad-l); padding-right: var(--pad-r); }   /* у карточки в этом режиме отступов нет — задаём здесь, колонки не прыгают */
 .w[data-fill="content"] .w__content {
   padding: calc(var(--pad-t) + 2px) var(--pad-r) var(--pad-b) var(--pad-l);
   background: var(--w-fill);
@@ -395,7 +737,8 @@ button:focus-visible { outline: 2px solid var(--border-info); outline-offset: 2p
 /* Слот под окно — наполняется на этапах 3–5 */
 .settings-slot {
   position: absolute;
-  left: 0;
+  z-index: 5;
+  left: calc(-1 * (var(--window-w) + var(--window-gap)));
   top: 0;
   width: var(--window-w);
 }
@@ -444,7 +787,7 @@ button:focus-visible { outline: 2px solid var(--border-info); outline-offset: 2p
   color: var(--text);
   outline: none;
 }
-.win__name input:focus { border-bottom-color: var(--text-link); }
+.win__name input:focus { border-bottom-color: var(--border-unaccented_hover_border-color); }
 
 .win__cmds {
   flex: 1;
@@ -547,22 +890,29 @@ button:focus-visible { outline: 2px solid var(--border-info); outline-offset: 2p
 .swatch-field { display: flex; align-items: center; gap: var(--sp-s); height: 24px; }
 .swatch-wrap { display: flex; align-items: center; gap: 2px; }
 
-.swatch {
+.swatch, .palette__item {
   width: var(--swatch);
   height: var(--swatch);
   flex: none;
-  border: 1px solid var(--border-unaccented);
+  box-sizing: border-box;
+  padding: 0;
+  border: 1px solid var(--border-unaccented);   /* Border/unaccented_border-color из globalColor, на ховере не меняется */
   border-radius: var(--r-pill);
-  background: var(--swatch-color, var(--bg));
+  /* Два слоя в одном элементе: снизу диск цвета обводки (border-box), сверху заливка (padding-box).
+     Сглаженный внешний край целиком цвета обводки — заливка не просвечивает наружу, кольцо одинаковое при любом цвете. */
+  background:
+    var(--swatch-fill, linear-gradient(var(--swatch-color, var(--bg)), var(--swatch-color, var(--bg)))) padding-box,
+    var(--border-unaccented) border-box;
 }
+.swatch:hover, .palette__item:hover { width: calc(var(--swatch) + 4px); height: calc(var(--swatch) + 4px); margin: -2px; }
 /* Ховер — как в компоненте colorBtn (Figma 10466:51085): кружок растёт с 24 до 28 px от центра,
    обводка остаётся 1 px. Отрицательный отступ сохраняет раскладку соседей. */
-.swatch:hover { width: 28px; height: 28px; margin: -2px; }
 /* Выключено: белый круг, перечёркнутый по диагонали «/» — как «нет цвета» в палитре пикера */
 /* Линия — SVG-штрих 1 px, как у i-no-color в палитре; non-scaling-stroke держит 1 px и на ховере (28 px) */
 .swatch[data-off] {
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1' preserveAspectRatio='none'%3E%3Cpath d='M1 0L0 1' stroke='%23d2d6da' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E") border-box 0 0 / 100% 100%,
-              var(--bg);
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1' preserveAspectRatio='none'%3E%3Cpath d='M1 0L0 1' stroke='%23d2d6da' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E") padding-box 0 0 / 100% 100%,
+    linear-gradient(var(--bg), var(--bg)) padding-box,
+    var(--border-unaccented) border-box;
 }
 
 /* Крестик «убрать»: кнопка высотой со строку (24 px), глиф по центру — так ✕ стоит на одной линии
@@ -600,7 +950,25 @@ button.swatch-clear:hover { color: var(--icon-secondary); }
   color: var(--icon-primary);
   filter: drop-shadow(var(--shadow-button));
 }
-.btn-icon[data-idle] { color: var(--icon-unaccented); }
+/* Кнопки шапки окна — по компоненту ui-kit «Окно редактора свойств» (.pe__reset / .pe__close / .pe__done),
+   https://mariesmi.github.io/ui-kit/catalog/#property-editor — берём цвета и состояния оттуда */
+.btn-icon, .picker__tool { border-radius: var(--components-button-border-radius_button, var(--r-pill)); background: none; cursor: pointer; }
+.btn-icon:hover { background: none; }
+.btn-icon[data-action*="reset"], .picker__tool[data-action*="reset"] { color: var(--icon-label_icon-color); }
+.btn-icon[data-action*="reset"]:hover, .picker__tool[data-action*="reset"]:hover { color: var(--icon-label_hover_icon-color); }
+.btn-icon[data-action*="reset"][data-idle], .picker__tool[data-action*="reset"][data-idle] { color: var(--icon-unaccented_icon-color); cursor: default; }
+.btn-icon[data-action*="close"], .btn-icon[data-action*="cancel"] { color: var(--icon-secondary_icon-color); }
+.btn-icon[data-action*="close"]:is(:hover, :active), .btn-icon[data-action*="cancel"]:is(:hover, :active) { color: var(--icon-link_hover_icon-color); }
+.btn-apply {
+  background: var(--background-contrast-success_color);
+  color: var(--icon-contrast_icon-color);
+  border-radius: var(--components-button-border-radius_button, var(--r-pill));
+  filter: none;
+  box-shadow: 0 0 var(--blur-shadow-blur_d) var(--color-shadow-color_d);
+  cursor: pointer;
+}
+.btn-apply:hover { background: var(--background-contrast-success_hover_color); }
+.btn-apply:active { background: var(--background-contrast-success_active_color); }
 
 /* Сетка «подпись — редактор» */
 .form {
@@ -693,7 +1061,7 @@ button.swatch-clear:hover { color: var(--icon-secondary); }
   height: 24px;
   border-bottom: 1px solid var(--border-unaccented);
 }
-.size-field:focus-within { border-bottom-color: var(--text-link); }
+.size-field:focus-within { border-bottom-color: var(--border-unaccented_hover_border-color); }
 .size-field input,
 .pad-field input {
   width: 100%;
@@ -726,7 +1094,7 @@ button.swatch-clear:hover { color: var(--icon-secondary); }
   border-bottom: 1px solid var(--border-unaccented);
   color: var(--icon-label);
 }
-.pad-field:focus-within { border-bottom-color: var(--text-link); }
+.pad-field:focus-within { border-bottom-color: var(--border-unaccented_hover_border-color); }
 
 .toggle-row { display: flex; align-items: center; gap: var(--sp-s); height: 24px; }
 .switch { display: flex; align-items: center; height: 24px; }
@@ -836,7 +1204,7 @@ button.swatch-clear:hover { color: var(--icon-secondary); }
   color: var(--icon-label);
 }
 .num-field--s { width: 38px; }
-.num-field:focus-within { border-bottom-color: var(--text-link); }
+.num-field:focus-within { border-bottom-color: var(--border-unaccented_hover_border-color); }
 .num-field input {
   width: 100%;
   min-width: 0;
@@ -1101,7 +1469,7 @@ button:hover > .radio-off { visibility: visible; }
 
 /* Поле размера: единица справа — кнопка меню величин (PropertyGrid 23509:285935) */
 .size-unit { flex: none; color: var(--text-label); white-space: nowrap; }
-button.size-unit:hover { color: var(--text-link); }
+button.size-unit:hover { color: var(--text-label_hover_text-color); text-decoration: underline; text-underline-offset: 3px; }   /* @label_hover + подчёркивание */
 .edge-clear { display: flex; align-items: center; justify-content: center; width: 16px; height: 24px; color: var(--icon-unaccented); }
 .edge-clear .ico { font-size: 12px; }                  /* «Сброс»: cbuc-icons 12 px */
 .edge-clear:hover { color: var(--icon-secondary); }
@@ -1374,7 +1742,7 @@ button.size-unit:hover { color: var(--text-link); }
   color: var(--text);
   outline: none;
 }
-.ufield:focus-within { border-bottom-color: var(--text-link); }
+.ufield:focus-within { border-bottom-color: var(--border-unaccented_hover_border-color); }
 .ufield--format { width: 46px; }
 .ufield--format .ico { position: absolute; right: 0; top: calc(50% - 8.5px); color: var(--icon-unaccented); }
 .ufield--hex { width: 66px; }
@@ -1395,14 +1763,9 @@ button.size-unit:hover { color: var(--text-link); }
   padding: var(--sp-m) 0 2px;
 }
 .palette__item {
-  width: var(--swatch-l);
-  height: var(--swatch-l);
-  border: 1px solid var(--border-unaccented);
-  border-radius: var(--r-pill);
-  background: var(--c);
+  --swatch: var(--swatch-l);       /* тот же компонент, что .swatch, только 28 px (ховер 32) */
+  --swatch-color: var(--c);
 }
-/* Ховер — как у кружка-вызова colorBtn: +4 px от центра (28 → 32) */
-.palette__item:hover { width: 32px; height: 32px; margin: -2px; }
 .palette__item[data-none] { border: 0; background: none; }
 .palette__item[data-none] svg { display: block; width: 100%; height: 100%; }
 
@@ -1456,28 +1819,140 @@ button.size-unit:hover { color: var(--text-link); }
 </svg>
 
 <main class="stage" id="stage">
-  <div class="scene" id="scene">
+  <!-- Окружение: страница «Главная страница» в редакторе (Figma 10316:68601) -->
+  <header class="env-head" aria-hidden="true">
+    <div class="env-head__side env-head__side--l"><span class="env-title">Главная страница</span></div>
+    <div class="env-view">
+      <span class="env-view__b env-view__b--on"><i class="g g--14">&#xE730;</i></span>
+      <span class="env-view__b"><i class="g g--14">&#xE637;</i></span>
+      <span class="env-view__b"><i class="g g--14">&#xEAB4;</i></span>
+    </div>
+    <div class="env-head__side env-head__side--r">
+      <div class="env-cmds">
+        <span class="env-cmd" id="env-undo"><i class="g g--20">&#xE6CF;</i></span>
+        <span class="env-cmd"><i class="g g--20">&#xE6CA;</i></span>
+        <span class="env-cmd" id="env-reset"><i class="g g--20">&#xE629;</i></span>
+      </div>
+      <span class="env-cmd env-close"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M1.5 1.5l9 9M10.5 1.5l-9 9"/></svg></span>
+    </div>
+  </header>
+
+  <div class="env-content">
+    <div class="env-screens">
+      <div class="env-dash">
+        <div class="env-main">
+          <div class="env-row1">
+            <div class="env-card env-card--blue" aria-hidden="true">
+              <div class="env-card__in"><span class="sk-title"></span><span class="sk-block"></span></div>
+            </div>
+
+            <div class="env-widget" id="scene">
     <!-- Окно настроек (этапы 3–5) -->
     <div class="settings-slot" id="settings"></div>
 
     <!-- Виджет в режиме редактирования -->
     <div class="widget-frame">
-      <div class="toolbar" aria-hidden="true">
-        <span class="toolbar__item"><i class="ico" data-i="back"></i></span>
-        <span class="toolbar__item toolbar__item--active"><i class="ico" data-i="gear"></i></span>
-        <span class="toolbar__item"><i class="ico" data-i="move"></i></span>
-        <span class="toolbar__item toolbar__item--danger"><i class="ico" data-i="trash"></i></span>
-        <span class="toolbar__item"><i class="ico" data-i="more"></i></span>
+      <div class="tb tb--style-info" id="widget-toolbar" role="toolbar" aria-label="Виджет">
+        <button type="button" class="tb__btn" aria-label="Назад"><span class="tb__icon" aria-hidden="true">&#xe9a9;</span></button>
+        <button type="button" class="tb__btn" id="toolbar-gear" aria-label="Настройки виджета" aria-pressed="false"><span class="tb__icon" aria-hidden="true">&#xe75d;</span></button>
+        <button type="button" class="tb__btn" id="toolbar-move" aria-label="Размер" aria-pressed="false"><span class="tb__icon" aria-hidden="true">&#xe63e;</span></button>
+        <button type="button" class="tb__btn tb__btn--delete" aria-label="Удалить"><span class="tb__icon" aria-hidden="true">&#xeb72;</span></button>
+        <button type="button" class="tb__btn" aria-label="Ещё"><span class="tb__icon" aria-hidden="true">&#xeab4;</span></button>
       </div>
 
       <!-- Виджет (этап 2) -->
       <div class="widget-slot" id="widget"></div>
 
-      <span class="handle handle--top"></span>
-      <span class="handle handle--right"></span>
-      <span class="handle handle--bottom"></span>
-      <span class="handle handle--left"></span>
+      <button type="button" class="wg__plus wg__plus--up" aria-label="Добавить виджет сверху"></button>
+      <button type="button" class="wg__plus wg__plus--right" aria-label="Добавить виджет справа"></button>
+      <button type="button" class="wg__plus wg__plus--down" aria-label="Добавить виджет снизу"></button>
+      <button type="button" class="wg__plus wg__plus--left" aria-label="Добавить виджет слева"></button>
     </div>
+            </div>
+          </div>
+
+          <div class="env-row2" aria-hidden="true">
+            <div class="env-card env-card--green">
+              <div class="env-card__in"><span class="sk-title"></span><span class="sk-block"></span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="env-ops" aria-hidden="true">
+          <div class="env-ops__grp"><span class="env-ops__pill"><i class="g g--20">&#xE75D;</i></span></div>
+          <div class="env-ops__grp">
+            <span class="env-ops__btn"><i class="g">&#xE636;</i></span>
+            <span class="env-ops__btn"><i class="g">&#xE65D;</i></span>
+          </div>
+        </div>
+
+        <div class="env-notif" aria-hidden="true">
+          <div class="env-ncard">
+            <div class="env-ngrp">
+              <div class="env-nhead"><span class="pill" style="width:109px"></span><span class="pill pill--dot"></span></div>
+              <div class="env-nrow">
+                <span class="sq" style="width:32px;height:32px"></span>
+                <div class="env-nlines"><span class="pill" style="width:117px"></span><span class="pill"></span><span class="pill"></span></div>
+              </div>
+            </div>
+            <div class="env-ngrp">
+              <div class="env-nhead"><span class="pill" style="width:82px"></span><span class="pill pill--dot"></span></div>
+              <div class="env-nrow">
+                <span class="sq" style="width:32px;height:32px"></span>
+                <div class="env-nlines"><span class="pill" style="width:117px"></span><span class="pill"></span><span class="pill"></span></div>
+              </div>
+            </div>
+            <div class="env-ngrp">
+              <div class="env-nhead"><span class="pill" style="width:109px"></span><span class="pill pill--dot"></span></div>
+              <div class="env-nrow">
+                <span class="sq" style="width:32px;height:32px"></span>
+                <div class="env-nlines"><span class="pill" style="width:117px"></span><span class="pill"></span><span class="pill"></span></div>
+              </div>
+            </div>
+            <div class="env-ngrp">
+              <div class="env-nhead"><span class="pill" style="width:109px"></span><span class="pill pill--dot"></span></div>
+              <div class="env-nrow">
+                <span class="sq" style="width:32px;height:32px"></span>
+                <div class="env-nlines"><span class="pill" style="width:117px"></span><span class="pill"></span><span class="pill"></span></div>
+              </div>
+            </div>
+          </div>
+          <div class="env-ncard">
+            <span class="sk-title"></span>
+            <div class="env-tiles">
+                <div class="env-tile"><span class="sq" style="width:72px;height:72px"></span><span class="pill" style="width:72px"></span></div>
+                <div class="env-tile"><span class="sq" style="width:72px;height:72px"></span><span class="pill" style="width:72px"></span></div>
+                <div class="env-tile"><span class="sq" style="width:72px;height:72px"></span><span class="pill" style="width:72px"></span></div>
+                <div class="env-tile"><span class="sq" style="width:72px;height:72px"></span><span class="pill" style="width:72px"></span></div>
+            </div>
+          </div>
+          <div class="env-ncard env-ncard--media">
+            <span class="sk-title"></span>
+            <div class="env-media">
+              <span class="sq" style="width:100px;height:100px"></span>
+              <div class="env-media__text">
+                <div class="env-media__lines"><span class="pill"></span><span class="pill" style="width:91px"></span><span class="pill" style="width:91px"></span></div>
+                <span class="pill" style="width:95px;align-self:flex-end"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="env-drag"></div>
+      </div>
+    </div>
+
+    <aside class="env-side" aria-hidden="true">
+      <div class="env-side__nav">
+        <span class="env-side__i env-side__i--primary"><i class="g g--24">&#xEADD;</i></span>
+        <span class="env-side__i"><i class="g g--20">&#xEBBC;</i></span>
+        <span class="env-side__i"><i class="g g--20">&#xEBF9;</i></span>
+        <span class="env-side__i"><i class="g g--24">&#xE94C;</i></span>
+        <span class="env-side__i"><i class="g g--24">&#xEAA7;</i></span>
+        <span class="env-side__i"><i class="g g--24">&#xEAA9;</i></span>
+      </div>
+      <span class="env-help">?</span>
+    </aside>
   </div>
 </main>
 
@@ -1520,8 +1995,8 @@ paintIcons();
 // Палитры пикеров — из Figma (узлы 11931:124382, 11931:124403, 11931:124361).
 // null — «нет цвета» (первый кружок с диагональю).
 const PALETTES = {
-  // у текста нет «нет цвета»: заголовок выключают крестиком; цвета — «Типовые цвета» (Figma 12104:72073)
-  title: ["#000000", "#999999", "#8991a9", "#2562aa", "#313e78", "#5a49ab", "#cc3d00", "#c2140a", "#e6a119", "#298e3c"],
+  // «нет цвета» первым, как у остальных; цвета — «Типовые цвета» (Figma 12104:72073), десятый (зелёный) не влезает в ряд
+  title: [null, "#000000", "#999999", "#8991a9", "#2562aa", "#313e78", "#5a49ab", "#cc3d00", "#c2140a", "#e6a119"],
   marker: [null, "#0085f2", "#2562aa", "#c2140a", "#f47843", "#e6a119", "#298e3c", "#5a49ab", "#cccccc", "#8991a9"],
   // Фон: белый и 8 пастельных градиентов (−69.6°, цвет → белый)
   background: [null, "#ffffff", "#ebf4ff", "#eeebff", "#ffeceb", "#fff8eb", "#ebffee", "#fff1eb", "#f8f8f8", "#ebfdff"],
@@ -1532,6 +2007,14 @@ const PALETTES = {
   // Цвет тени (из окна «Тень»): палитра текста без «нет цвета» — тень без цвета убирается ✕ в строке
   shadow: ["#000000", "#999999", "#8991a9", "#2562aa", "#5a49ab", "#cc3d00", "#c2140a", "#e6a119", "#298e3c"],
 };
+
+// На втором уровне («Стиль») «нет цвета» не нужен: цвет сбрасывается крестиком, свойство уходит в чипсу.
+// Палитра заголовка там возвращает десятый цвет (зелёный).
+function paletteFor(key) {
+  if (ui.screen !== "style") return PALETTES[key];
+  if (key === "title") return ["#000000", "#999999", "#8991a9", "#2562aa", "#313e78", "#5a49ab", "#cc3d00", "#c2140a", "#e6a119", "#298e3c"];
+  return PALETTES[key].filter(Boolean);
+}
 
 // #rrggbb + непрозрачность 0–100 → rgba()
 function rgba(hex, opacity = 100) {
@@ -1557,7 +2040,7 @@ const STYLES = {
 // Состояние по умолчанию; вся отрисовка — из state
 const DEFAULT_STATE = {
   style: "inside",
-  name: "Заголовок виджета",
+  name: "Компании",
   title: { on: true, color: "#000000", opacity: 100 },
   marker: { on: true, color: "#0085f2", opacity: 100 },
   background: { on: true, color: "#ffffff", opacity: 100, fill: "widget" },
@@ -1566,13 +2049,14 @@ const DEFAULT_STATE = {
   // min/max — краевые значения «Добавить» (null — не добавлены)
   size: {
     w: { mode: "fill", px: 557, pct: 100 },
-    h: { mode: "fill", px: 240, pct: 100 },
+    h: { mode: "auto", px: 240, pct: 100 },
     minW: null, maxW: null, minH: null, maxH: null,
   },
   // Отступы по сторонам; split — раскрыт редактор по сторонам (PropertyGrid 24008:202564)
   padding: { top: 12, right: 12, bottom: 12, left: 12, split: false },   // внутренние
   margin:  { top: 0, right: 0, bottom: 0, left: 0, split: false },       // внешние
   hideEmpty: true,                // «Скрывать без данных»
+  news: { subs: "Все подписки", types: "все типы", unread: false, layout: 2, direction: "Авто" },   // уникальные свойства «Новостей»
   font: "h4",                     // стиль заголовка: h1…h6 (Figma 10404:99461)
   fontStyles: {},                 // правки стилей из окна «настройка стиля»: { h4: { size, bold, italic, underline, strike } }
   // Иконка заголовка (Figma 10501:47174): глиф cbuc-icons24, размер, цвет
@@ -1628,22 +2112,71 @@ let state = structuredClone(DEFAULT_STATE);
 
 // ---------- Виджет ----------
 
+// Компонент moreButton — «Показать ещё» (стили .moreButton). static — режим редактирования: без ховера и нажатия
+function moreButtonHTML({ static: isStatic = false, label = "Показать ещё" } = {}) {
+  return `<button type="button" class="moreButton${isStatic ? " moreButton--static" : ""}" aria-label="${label}"${isStatic ? " tabindex=\"-1\"" : ""}><svg width="20" height="4" viewBox="0 0 20 4" fill="currentColor" aria-hidden="true"><circle cx="2" cy="2" r="2"/><circle cx="10" cy="2" r="2"/><circle cx="18" cy="2" r="2"/></svg></button>`;
+}
+
+
+// Карточки контента виджета «Новости»: условные обложки (градиенты), фиксированный размер
+const NEWS_CARDS = [
+  { t: "Создайте новость", d: "Это лучший способ рассказать о важном", bg: "#e3e3e3", cover: "url(https://images.unsplash.com/photo-1628103343862-4ab1cb900224?w=400&q=70&auto=format&fit=crop) center / cover no-repeat, radial-gradient(circle at 55% 40%, #f6f6f6 0 32px, transparent 33px), linear-gradient(180deg,#c9c9c9,#e3e3e3)" },
+  { t: "Расскажите о компании", d: "Покажите, что вы заслуживаете доверия", bg: "#d6a57e", cover: "url(https://images.unsplash.com/photo-1666114170628-b34b0dcc21aa?w=400&q=70&auto=format&fit=crop) center / cover no-repeat, radial-gradient(ellipse at 30% 50%, #f1d3a9 0 22px, transparent 23px), radial-gradient(ellipse at 72% 45%, #e9c08f 0 26px, transparent 27px), linear-gradient(180deg,#b97f55,#d6a57e)" },
+  { t: "Представьте свою команду", d: "Создайте привлекательный образ коллектива", bg: "#d8dce8", cover: "url(https://images.unsplash.com/photo-1665147136748-6317acbc0bd8?w=400&q=70&auto=format&fit=crop) center / cover no-repeat, linear-gradient(180deg,#ffe7c4 0%,#e6e4ee 55%,#d8dce8 100%)" },
+  { t: "Творите вместе с нами", d: "Повысьте вовлеченность сотрудников", bg: "#c9d78a", cover: "url(https://images.unsplash.com/photo-1525438935289-08138791db2b?w=400&q=70&auto=format&fit=crop) center / cover no-repeat, radial-gradient(circle at 50% 55%, #98b073 0 30px, transparent 31px), linear-gradient(180deg,#b8c96f,#c9d78a)" },
+  { t: "Расскажите о своих достижениях", d: "Продемонстрируйте свои потрясающие результаты", bg: "#ffffff", thumb: true },
+  { t: "Расскажите о себе", d: "Добавьте больше полезного контента", bg: "#f4b8cd", cover: "url(https://images.unsplash.com/photo-1686226421696-c2ccf97eb475?w=400&q=70&auto=format&fit=crop) center / cover no-repeat, radial-gradient(ellipse at 55% 70%, #a7bd5b 0 34px, transparent 35px), linear-gradient(180deg,#f7c4d6,#f4b8cd)" },
+  { t: "Поделитесь достижениями", d: "Создайте больше интересных публикаций", bg: "#f1ebe3", cover: "linear-gradient(180deg,#d8e4f2,#f1ebe3)" },
+];
+function newsCardsHTML() {
+  const chat = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.5c3.3 0 6 2.1 6 4.7S11.300 12 8 12c-.7 0-1.400-.1-2-.3L3 13.200l.7-2.600C2.700 9.700 2 8.500 2 7.200 2 4.600 4.700 2.500 8 2.500z"/></svg>`;
+  return NEWS_CARDS.map((c) => `<article class="ncard${c.thumb ? " ncard--thumb" : ""}" style="--nc-bg:${c.bg};${c.cover ? `--nc-cover:${c.cover}` : ""}"><div class="ncard__cover">${c.thumb ? '<div class="ncard__thumb"></div>' : ""}</div><h3 class="ncard__t">${c.t}</h3><p class="ncard__d">${c.d}</p><div class="ncard__c">${chat}10</div></article>`).join("");
+}
+
 const widgetSlot = document.getElementById("widget");
 widgetSlot.innerHTML = `
   <article class="w" id="w">
     <svg class="w__marker" width="4" height="22" aria-hidden="true"><use href="#i-marker"/></svg>
-    <header class="w__header"><i class="w__icon" id="w-icon" aria-hidden="true"></i><h2 class="w__title" id="w-title"></h2></header>
+    <header class="w__header"><i class="w__icon" id="w-icon" aria-hidden="true"></i><h2 class="w__title" id="w-title"></h2><div class="w__cols" aria-hidden="true"><span class="w__col w__col--a"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2.5v11M4 10l4 4 4-4"/></svg>Выручка, млн ₽</span><span class="w__col w__col--b">Стоимость, млн ₽</span></div></header>
     <div class="w__content">
-      <div class="w__lines" aria-label="Контент виджета">
-        <div class="w__line"></div><div class="w__line"></div><div class="w__line"></div>
-      </div>
+      <div class="w__lines" aria-label="Контент виджета"><div class="w__line"></div><div class="w__line"></div><div class="w__line"></div><div class="w__line"></div></div>
+      <div class="w__news" aria-label="Контент виджета">${newsCardsHTML()}</div>
+      <div class="w__table" aria-label="Контент виджета"><div class="w__grp w__grp--main"><div class="w__row"><span class="w__who"><span class="w__name">Газпром, ПАО</span><span class="w__city">Санкт-Петербург</span></span><span class="w__num w__num--a">5 846 352</span><span class="w__num w__num--b">2 666 585</span></div><div class="w__row"><span class="w__who"><span class="w__name">Сбербанк, ПАО</span><span class="w__city">Москва</span></span><span class="w__num w__num--a">4 544 055</span><span class="w__num w__num--b"></span></div><div class="w__row"><span class="w__who"><span class="w__name">ЛУКойл, ПАО</span><span class="w__city">Москва</span></span><span class="w__num w__num--a">3 453 224</span><span class="w__num w__num--b">5 336 348</span></div><div class="w__row"><span class="w__who"><span class="w__name">Агроторг, ООО</span><span class="w__city">Санкт-Петербург</span></span><span class="w__num w__num--a">3 440 848</span><span class="w__num w__num--b">176 097</span></div><div class="w__row"><span class="w__who"><span class="w__name">Тандер, АО (Магнит)</span><span class="w__city">Краснодар</span></span><span class="w__num w__num--a">3 050 026</span><span class="w__num w__num--b">195 656</span></div><div class="w__row"><span class="w__who"><span class="w__name">Банк ВТБ, ПАО</span><span class="w__city">Санкт-Петербург</span></span><span class="w__num w__num--a">2 051 251</span><span class="w__num w__num--b"></span></div></div><div class="w__grp w__grp--bold"><div class="w__row"><span class="w__who"><span class="w__name">Компания &quot;Тензор&quot;, ООО</span><span class="w__city">Ярославль</span></span><span class="w__num w__num--a">22 473</span><span class="w__num w__num--b">16 476</span></div><div class="w__row"><span class="w__who"><span class="w__name">УЦ Саби, ООО</span><span class="w__city">Калининград</span></span><span class="w__num w__num--a">264</span><span class="w__num w__num--b">116</span></div><div class="w__row"><span class="w__who"><span class="w__name">Мили, ООО</span><span class="w__city">Ярославль</span></span><span class="w__num w__num--a">247</span><span class="w__num w__num--b">187</span></div><div class="w__row"><span class="w__who"><span class="w__name">Квеста Бухобслуживание, ООО</span><span class="w__city">Ярославль</span></span><span class="w__num w__num--a">53</span><span class="w__num w__num--b">140</span></div></div></div>
     </div>
+    ${moreButtonHTML({ static: true })}
   </article>`;
 
 const w = document.getElementById("w");
 const widgetFrame = document.querySelector(".widget-frame");
 const wTitle = document.getElementById("w-title");
 const wIcon = document.getElementById("w-icon");
+
+// Подбор строк таблицы под высоту виджета: минимум по 2 строки в каждой группе, дальше добавляем по строке,
+// пока помещается (сначала жирная группа до 3, потом первая, потом жирная). Высота «по контенту» — показаны все.
+function fitTable() {
+  const table = w.querySelector(".w__table");
+  if (!table || w.dataset.kind === "demo") return;
+  const g1 = table.querySelector(".w__grp--main"), g2 = table.querySelector(".w__grp--bold");
+  const r1 = [...g1.children], r2 = [...g2.children];
+  const show = (g, rows, n) => { rows.forEach((r, i) => { r.hidden = i >= n; }); g.hidden = n === 0; };
+  if (state.size.h.mode === "auto") { show(g1, r1, r1.length); show(g2, r2, r2.length); return; }
+  const ROW = 24, GAP = 8, DIV = 33;
+  const content = w.querySelector(".w__content");
+  const cs = getComputedStyle(content);
+  const avail = content.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - 16 - 2;   // свои отступы контента (у «На контенте» они больше), место под moreButton
+  const h = (n) => (n ? n * ROW + (n - 1) * GAP : 0);
+  const total = (a, b) => h(a) + (a && b ? DIV : 0) + h(b);
+  let n1 = Math.min(2, r1.length), n2 = Math.min(2, r2.length);
+  while (n1 + n2 > 1 && total(n1, n2) > avail) { if (n1 > 0) n1--; else n2--; }
+  for (let grow = true; grow;) {
+    grow = false;
+    for (const target of ["g2", "g1", "g2"]) {
+      if (target === "g2" && n2 < r2.length && total(n1, n2 + 1) <= avail) { n2++; grow = true; }
+      else if (target === "g1" && n1 < r1.length && total(n1 + 1, n2) <= avail) { n1++; grow = true; }
+    }
+  }
+  show(g1, r1, n1); show(g2, r2, n2);
+}
 
 function renderWidget() {
   // Предпросмотр заголовка из черновика пикера (выключенный заголовок, открыт пикер текста)
@@ -1703,6 +2236,7 @@ function renderWidget() {
   for (const [side, v] of [["t", padding.top], ["r", padding.right], ["b", padding.bottom], ["l", padding.left]]) {
     w.style.setProperty(`--pad-${side}`, v + "px");
   }
+  fitTable();
 }
 
 // Применить пресет стиля: раскладка и включённость элементов; выбранные цвета сохраняются
@@ -1725,8 +2259,13 @@ function setState(mutator) {
   render();
 }
 
+// Снимок настроек на момент открытия окна: от него считается «что-то изменено» (кнопка ↻),
+// к нему же откатывает ✕ и сбрасывает ↻. ✓ просто закрывает окно, оставляя изменения.
+let baseline = null;
+const isChanged = () => !!baseline && JSON.stringify(state) !== JSON.stringify(baseline);
+
 function resetState() {
-  state = structuredClone(DEFAULT_STATE);
+  state = structuredClone(baseline || DEFAULT_STATE);
   render();
 }
 
@@ -1743,8 +2282,10 @@ function currentStyle() {
 // ---------- Окно настроек ----------
 
 const settingsSlot = document.getElementById("settings");
-const toolbarGear = document.querySelector(".toolbar__item--active");
-let ui = { open: true, screen: "main", menu: null, picker: null };
+const toolbarGear = document.getElementById("toolbar-gear");
+const toolbarMove = document.getElementById("toolbar-move");
+const toolbarEl = document.getElementById("widget-toolbar");
+let ui = { open: false, screen: "main", menu: null, picker: null };
 
 const arrowRight = `<svg class="icon" width="16" height="16"><use href="#i-arrow-back"/></svg>`;
 // Точка выбора пункта радио-меню: у выбранного — оранжевая, у остальных — пустая радиокнопка,
@@ -1756,6 +2297,15 @@ const radioBullet = (cls, checked) => checked
 const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
 
 // Свотч с подписью. key: background | title | marker
+// Кружок-вызов показывает то же, что палитра: у фона — градиент «цвет → белый», у остальных — плоский цвет
+function swatchFillStyle(key, color) {
+  if (key === "background") {
+    const f = backgroundFill(state.background.color, state.background.opacity);
+    if (f.startsWith("linear")) return `--swatch-fill:${f}`;
+  }
+  return `--swatch-color:${color}`;
+}
+
 function swatchField(key, label, { clearable, labelWidth }) {
   const part = state[key];
   const on = isOn(key);
@@ -1765,7 +2315,7 @@ function swatchField(key, label, { clearable, labelWidth }) {
       <span class="label"${labelWidth ? ` style="width:${labelWidth}px"` : ""}>${label}</span>
       <span class="swatch-wrap">
         <button class="swatch" data-action="swatch" data-key="${key}"
-          ${on ? `style="--swatch-color:${color}"` : "data-off"}
+          ${on ? `style="${swatchFillStyle(key, color)}"` : "data-off"}
           aria-label="${label}: ${on ? "изменить цвет" : "выбрать цвет"}"></button>
         ${clearable && on ? `<button class="swatch-clear" data-action="clear" data-key="${key}" aria-label="${label}: выключить"><i class="ico ico--s" data-i="close"></i></button>` : ""}
       </span>
@@ -1779,19 +2329,41 @@ function headHTML() {
         <input id="win-name" value="${esc(state.name)}" aria-label="Название виджета" spellcheck="false">
       </label>
       <div class="win__cmds">
-        <button class="btn-icon" data-action="reset" aria-label="Сбросить настройки"><i class="ico" data-i="reset"></i></button>
+        <button class="btn-icon" data-action="reset" ${isChanged() ? "" : "data-idle"} aria-label="Сбросить настройки"><i class="ico" data-i="reset"></i></button>
         <button class="btn-apply" data-action="close" aria-label="Применить"><i class="ico ico--s" data-i="check"></i></button>
-        <button class="btn-icon" data-action="close" aria-label="Закрыть"><i class="ico" data-i="close"></i></button>
+        <button class="btn-icon" data-action="cancel" aria-label="Закрыть без применения"><i class="ico" data-i="close"></i></button>
       </div>
     </header>`;
+}
+
+
+// Уникальные настройки виджета «Новости» (скрин из макета): подписки, типы, вкладка, компоновка, направление ленты
+function newsSettingsHTML() {
+  const n = state.news;
+  const info = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.1" aria-hidden="true"><circle cx="8" cy="8" r="6.5"/><path d="M8 7.200v4M8 4.800v.1" stroke-linecap="round"/></svg>`;
+  const L = (c) => `<svg width="64" height="36" viewBox="0 0 64 36" fill="currentColor" style="color:var(--lc)" aria-hidden="true">${c}</svg>`;
+  const layouts = [
+    L('<rect x="0" y="2" width="64" height="5" rx="2"/><rect x="0" y="13" width="48" height="5" rx="2"/><rect x="0" y="24" width="56" height="5" rx="2"/>'),
+    L('<rect x="0" y="0" width="16" height="16" rx="3"/><rect x="22" y="2" width="42" height="5" rx="2"/><rect x="22" y="11" width="30" height="5" rx="2"/><rect x="0" y="22" width="16" height="14" rx="3"/><rect x="22" y="24" width="42" height="5" rx="2"/>'),
+    L('<rect x="0" y="0" width="30" height="14" rx="3"/><rect x="34" y="0" width="30" height="14" rx="3"/><rect x="0" y="19" width="30" height="4" rx="2"/><rect x="34" y="19" width="30" height="4" rx="2"/><rect x="0" y="27" width="22" height="4" rx="2"/><rect x="34" y="27" width="22" height="4" rx="2"/>'),
+    L('<rect x="0" y="0" width="64" height="18" rx="3"/><rect x="0" y="24" width="64" height="5" rx="2"/><rect x="0" y="32" width="44" height="4" rx="2"/>'),
+  ];
+  return `
+      <div class="cloud news-set">
+        <div class="news-set__subs"><span>${esc(n.subs)}</span><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" aria-hidden="true"><path d="M2.500 4h11M2.500 8h11M2.500 12h11"/></svg>${info}</div>
+        <div class="news-set__row"><span>${esc(n.types)}</span><button type="button" class="news-set__chk" data-action="news-unread" aria-pressed="${n.unread}"><i></i>непрочитанные</button></div>
+        <button type="button" class="news-set__plus">+вкладка</button>
+        <div class="news-set__lbl">Компоновка ${info}</div>
+        <div class="news-set__layouts">${layouts.map((l, i) => `<span class="lay" aria-pressed="${n.layout === i}" aria-label="Компоновка ${i + 1}">${l}</span>`).join("")}</div>
+        <div class="news-set__dir"><span>Направление ленты</span><button class="link" type="button">${esc(n.direction)}</button></div>
+      </div>`;
 }
 
 function mainScreenHTML() {
   return `
     ${headHTML()}
     <div class="win__body">
-      <div class="cloud cloud--stub">Уникальные свойства виджета</div>
-
+      ${w.dataset.kind === "demo" ? `<div class="cloud cloud--stub">Уникальные свойства виджета</div>` : w.dataset.kind === "blocks" ? newsSettingsHTML() : ""}
       <div class="cloud">
         <div class="row">
           <span class="label">Высота</span>
@@ -1817,7 +2389,7 @@ function mainScreenHTML() {
 
 // Шапка подэкрана: «назад», название, ↻ ✓ ✕
 function subHeadHTML(title) {
-  const changed = JSON.stringify(state) !== JSON.stringify(DEFAULT_STATE);
+  const changed = isChanged();
   return `
     <header class="win__head">
       <div class="win__title">
@@ -1827,7 +2399,7 @@ function subHeadHTML(title) {
       <div class="win__cmds">
         <button class="btn-icon" data-action="reset" ${changed ? "" : "data-idle"} aria-label="Сбросить настройки"><i class="ico" data-i="reset"></i></button>
         <button class="btn-apply" data-action="close" aria-label="Применить"><i class="ico ico--s" data-i="check"></i></button>
-        <button class="btn-icon" data-action="close" aria-label="Закрыть"><i class="ico" data-i="close"></i></button>
+        <button class="btn-icon" data-action="cancel" aria-label="Закрыть без применения"><i class="ico" data-i="close"></i></button>
       </div>
     </header>`;
 }
@@ -1839,7 +2411,7 @@ function swatchEditor(key, label, clearable) {
   const color = partColor(key);
   return `
     <button class="swatch" data-action="swatch" data-key="${key}"
-      ${on ? `style="--swatch-color:${color}"` : "data-off"}
+      ${on ? `style="${swatchFillStyle(key, color)}"` : "data-off"}
       aria-label="${label}: ${on ? "изменить цвет" : "выбрать цвет"}"></button>
     ${clearable && on ? `<button class="swatch-clear" data-action="clear" data-key="${key}" aria-label="${label}: выключить"><i class="ico ico--s" data-i="close"></i></button>` : ""}`;
 }
@@ -2400,7 +2972,7 @@ function pickerHTML() {
           <span class="picker__fields">
             <span class="ufield ufield--format">HEX<i class="ico ico--s" data-i="formatArrow"></i></span>
             <span class="picker__alpha">
-              <label class="ufield ufield--hex"><input id="picker-hex" value="${hex ? "#" + hex : ""}" placeholder=" " maxlength="7" spellcheck="false" aria-label="Код цвета"><span class="hex-ph" aria-hidden="true">#<span>FFFFFF</span></span></label>
+              <label class="ufield ufield--hex"><input id="picker-hex" value="${hex ? "#" + hex : ""}" placeholder=" " maxlength="7" spellcheck="false" aria-label="Код цвета"><span class="hex-ph" aria-hidden="true">#<span>${(def.color || "#ffffff").slice(1).toUpperCase()}</span></span></label>
               <label class="ufield ufield--alpha"><input id="picker-alpha" value="${on ? part.opacity : 0}" inputmode="numeric" maxlength="3" aria-label="Непрозрачность, %"></label>
               <span class="pct">%</span>
             </span>
@@ -2408,8 +2980,8 @@ function pickerHTML() {
         </div>
         <div class="pcloud pcloud--colors">
           <div class="palette">
-            ${PALETTES[key].map((c) => c
-              ? `<button class="palette__item" style="--c:${isBg ? backgroundFill(c) : c}" data-action="pick" data-color="${c}" aria-label="${c}"></button>`
+            ${paletteFor(key).map((c) => c
+              ? `<button class="palette__item" style="${isBg && backgroundFill(c).startsWith("linear") ? `--swatch-fill:${backgroundFill(c)}` : `--c:${isBg ? backgroundFill(c) : c}`}" data-action="pick" data-color="${c}" aria-label="${c}"></button>`
               : `<button class="palette__item" data-none data-action="pick" data-color="" aria-label="Нет цвета"><svg width="28" height="28"><use href="#i-no-color"/></svg></button>`
             ).join("")}
           </div>
@@ -2446,19 +3018,26 @@ function openPicker(el) {
     y: Math.round((sw.top - slot.top) / frame.scale + dy),
     draft: structuredClone(state[key]),   // правки в пикере; ✓ переносит их в state, всё остальное отбрасывает
   };
-  // У текста нет «нет цвета»: у выключенного заголовка пикер открывается с чёрным (цвет по умолчанию),
-  // и виджет сразу показывает заголовок как предпросмотр черновика. В state (и стиль) — только по ✓ / выбору цвета;
-  // закрытие без выбора оставляет заголовок выключенным
-  if (key === "title" && !isOn("title")) {
-    Object.assign(ui.picker.draft, { on: true, color: DEFAULT_STATE.title.color, opacity: DEFAULT_STATE.title.opacity });
-    ui.picker.preview = true;
-  }
   render();
 }
 
 function renderSettings() {
-  toolbarGear.classList.toggle("toolbar__item--active", ui.open);
-  if (!ui.open) { settingsSlot.innerHTML = ""; return; }
+  // Окно можно открыть из тулбара кнопкой «Размер» (ui.anchor = "toolbar"): тогда это окно «Размер» — то же, что
+  // открывается из строки «Высота» основного окна, — и оно стоит под тулбаром: левый край по кнопке, зазор 4 px
+  const fromToolbar = ui.open && ui.anchor === "toolbar";
+  // «Назад» из окна «Размер», открытого из тулбара, показывает основное окно на том же месте (ui.anchor остаётся);
+  // кнопка «Размер» выбрана только пока открыт сам экран «Размер»
+  const sizeFromToolbar = fromToolbar && ui.screen === "size";
+  toolbarGear.setAttribute("aria-pressed", String(ui.open && !sizeFromToolbar));
+  toolbarMove.setAttribute("aria-pressed", String(sizeFromToolbar));
+  if (fromToolbar) {
+    settingsSlot.style.left = (toolbarEl.offsetLeft + toolbarMove.offsetLeft) + "px";
+    settingsSlot.style.top = (toolbarEl.offsetTop + toolbarEl.offsetHeight + 4) + "px";
+  } else {
+    settingsSlot.style.left = settingsSlot.style.top = "";
+  }
+  if (!ui.open) { baseline = null; settingsSlot.innerHTML = ""; return; }
+  if (!baseline) baseline = structuredClone(state);
 
   // Не пересобираем поле названия, пока в нём печатают — иначе теряется курсор
   const focused = document.activeElement?.id === "win-name";
@@ -2486,8 +3065,15 @@ function renderSettings() {
 
 // Действия окна
 const ACTIONS = {
+  "news-unread": () => setState((st) => { st.news.unread = !st.news.unread; }),
+  "news-layout": (el) => setState((st) => { st.news.layout = +el.dataset.layout; }),
   reset: () => { ui.picker = null; resetState(); },
-  close: () => { ui = { open: false, screen: "main", menu: null, picker: null }; render(); },
+  close: () => {
+    // применённое изменение — шаг истории для кнопки «назад» в шапке конструктора
+    if (baseline && JSON.stringify(state) !== JSON.stringify(baseline)) (envHistory[groupOf(w.dataset.kind)] ||= []).push(structuredClone(baseline));
+    ui = { open: false, screen: "main", menu: null, picker: null }; render();
+  },
+  cancel: () => { if (baseline) state = structuredClone(baseline); ACTIONS.close(); },
   screen: (el) => { ui.screen = el.dataset.screen; ui.menu = null; ui.picker = null; render(); },
   presets: () => { ui.picker = null; ui.menu = null; ui.presets = true; render(); },
   "presets-close": () => { ui.presets = false; render(); },
@@ -2702,6 +3288,36 @@ function commitPickerField(input) {
     else render();
   }
 }
+// HEX-поле пикера: «#» нельзя стереть — курсор не заходит левее него, в значении только 0-9 a-f, не больше 6 знаков
+(() => {
+  const isHex = (t) => t && t.id === "picker-hex";
+  const fix = (el) => {
+    const v = "#" + el.value.replace(/[^0-9a-fA-F]/g, "").slice(0, 6);
+    if (el.value !== v) el.value = v;
+  };
+  const clamp = (el) => {
+    if (el.selectionStart < 1) el.setSelectionRange(1, Math.max(1, el.selectionEnd));
+  };
+  document.addEventListener("focusin", (e) => {
+    if (!isHex(e.target)) return;
+    fix(e.target);
+    setTimeout(() => clamp(e.target), 0);
+  });
+  document.addEventListener("input", (e) => { if (isHex(e.target)) { fix(e.target); clamp(e.target); } }, true);
+  document.addEventListener("select", (e) => { if (isHex(e.target)) clamp(e.target); });
+  document.addEventListener("mouseup", (e) => { if (isHex(e.target)) setTimeout(() => clamp(e.target), 0); });
+  document.addEventListener("keydown", (e) => {
+    const el = e.target;
+    if (!isHex(el)) return;
+    const atStart = el.selectionStart <= 1 && el.selectionEnd <= 1;
+    if ((e.key === "Backspace" && atStart) || ((e.key === "ArrowLeft" || e.key === "Home") && el.selectionStart <= 1 && !e.shiftKey)) {
+      e.preventDefault();
+      el.setSelectionRange(1, 1);
+    }
+    if (e.key === "a" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); el.setSelectionRange(1, el.value.length); }
+  }, true);
+})();
+
 // Числовые поля: data-field="группа.ключ"
 //   size.w | height.value | height.max
 //   padding/margin: h (слева+справа), v (сверху+снизу), top/right/bottom/left
@@ -2830,26 +3446,101 @@ settingsSlot.addEventListener("input", (e) => {
 });
 
 // Окно закрыто — клик по виджету открывает его снова
-document.querySelector(".widget-frame").addEventListener("click", () => {
+// Тулбар: шестерёнка открывает основное окно настроек, «Размер» — окно «Размер» под тулбаром; повторный клик закрывает.
+// Кнопки — переключатели (aria-pressed = «выбрана» в ките), остальные пока без действия.
+// Клик не должен всплывать до рамки виджета: она открывает окно, и закрытие кнопкой тут же отменилось бы
+document.getElementById("widget-toolbar").addEventListener("click", (e) => {
+  e.stopPropagation();
+  const btn = e.target.closest("button");
+  if (btn === toolbarGear) {
+    const closing = ui.open && !(ui.anchor === "toolbar" && ui.screen === "size");
+    ui = { open: !closing, screen: "main", menu: null, picker: null };
+    render();
+  } else if (btn === toolbarMove) {
+    const closing = ui.open && ui.anchor === "toolbar" && ui.screen === "size";
+    ui = { open: !closing, screen: "size", anchor: closing ? null : "toolbar", menu: null, picker: null };
+    render();
+  }
+});
+
+document.querySelector(".widget-frame").addEventListener("click", (e) => {
+  if (e.target.closest(".wg__plus")) return;   // плюсы — отдельное действие (добавить виджет), настройки не открываем
   if (!ui.open) { ui = { open: true, screen: "main", menu: null, picker: null }; render(); }
 });
 
 function render() {
   renderWidget();
   renderSettings();
+  renderEnvCmds();
 }
+// «Назад» и «Сброс» в шапке конструктора активны, когда окно настроек закрыто и применённые изменения отличаются от исходных
+// (название по умолчанию у сценария в сравнении не участвует)
+function renderEnvCmds() {
+  const g = groupOf(w.dataset.kind || "typical");
+  const norm = (st) => JSON.stringify({ ...st, name: Object.values(SCENARIO_TITLES).includes(st.name) ? "" : st.name });
+  const changed = norm(state) !== norm(freshState(g));
+  document.getElementById("env-undo").classList.toggle("env-cmd--on", !ui.open && !!envHistory[g]?.length);
+  document.getElementById("env-reset").classList.toggle("env-cmd--on", !ui.open && changed);
+}
+// «Назад» — на один применённый шаг, «Сброс» — всё к значениям по умолчанию
+const envHistory = {};
+document.getElementById("env-undo").addEventListener("click", (e) => {
+  if (!e.currentTarget.classList.contains("env-cmd--on")) return;
+  const g = groupOf(w.dataset.kind);
+  state = envHistory[g].pop();
+  render();
+});
+document.getElementById("env-reset").addEventListener("click", (e) => {
+  if (!e.currentTarget.classList.contains("env-cmd--on")) return;
+  const g = groupOf(w.dataset.kind);
+  state = freshState(g);
+  envHistory[g] = [];
+  render();
+});
 
 // Рамка демо: вспомогательная панель справа (без шапки); сцена масштабируется вместе с ней под окно
+const SCENARIO_TITLES = { demo: "Заголовок виджета", typical: "Компании", blocks: "Новости" };
+// «Демо» и «Типовой» делят одно состояние, «Новости» — своё: настройки одной ветки не влияют на другую
+const groupOf = (id) => (id === "blocks" ? "blocks" : "base");
+const stateGroups = {};
+function freshState(group) {
+  const st = structuredClone(DEFAULT_STATE);
+  if (group === "blocks") {
+    st.name = SCENARIO_TITLES.blocks;
+    st.style = "noBg";                 // плашки контента со своим фоном — фон виджета выключен
+    st.background.on = false;
+    st.padding = { top: 12, right: 12, bottom: 12, left: 0, split: true };
+  }
+  return st;
+}
+function setScenario(id) {
+  if (!SCENARIO_TITLES[id]) return;
+  const prev = w.dataset.kind;
+  w.dataset.kind = id;
+  if (prev && groupOf(prev) !== groupOf(id)) {
+    stateGroups[groupOf(prev)] = state;
+    state = stateGroups[groupOf(id)] || freshState(groupOf(id));
+    baseline = null;
+    if (ui.open) ui = { open: true, anchor: ui.anchor, screen: "main", menu: null, picker: null };
+  } else if (prev && prev !== id && state.name === SCENARIO_TITLES[prev]) {
+    state.name = SCENARIO_TITLES[id];   // название по умолчанию меняем, только если его не правили
+  }
+  render();
+}
 const frame = DemoFrame.mount({
   stage: document.getElementById("stage"),
+  top: 4,   // отступ сверху, чтобы сцена не липла к краю окна (слева 4 px задаёт рамка)
   scenarios: [
-    { id: "demo", title: "Демо-виджет" },
-    { id: "blocks", title: "Виджет с блочным контентом", disabled: true },   // пока не сделан
-  ],
-  value: { scenario: "demo" },
+           { id: "demo", title: "Демо-виджет" },
+           { id: "typical", title: "Типовой виджет" },
+           { id: "blocks", title: "Виджет с блочным контентом" },
+         ],
+  value: { scenario: "typical" },
+  onChange: (v) => setScenario(v.scenario),
   links: [{ title: "Макет в Figma", href: "https://www.figma.com/design/44fX18O5Huk4hmoaANMNIC/?node-id=11931-124266" }],
   team: [{ label: "Design", name: "Мария Смирнова" }, { label: "Develop" }],
 });
 
+w.dataset.kind = "typical";
 render();
 </script>

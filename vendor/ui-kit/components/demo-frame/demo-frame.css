@@ -1,0 +1,70 @@
+/*!
+ * demo-frame — рамка интерактивного демо (Figma xMQ3ZEN4AUINgwjVoxR8hS 18715:93398).
+ * Шапку и панель расставляет и масштабирует demo-frame.js; размеры — переменные --df-* у .df (задаёт JS).
+ * Цвета и тени — токены ui-kit (tokens.css подключается раньше). Размеры рамки фиксированы и не зависят
+ * от data-ui-size: рамка — обвязка демо, её геометрию считает JS.
+ * https://github.com/MarieSmi/ui-kit/tree/main/components/demo-frame
+ */
+
+.df { --df-w: 1600px; --df-h: 900px; --df-head-h: 80px; --df-gap: 16px; --df-panel-w: 300px; }
+.df-head, .df-panel { box-sizing: border-box; font-family: "Inter", sans-serif; line-height: normal; color: var(--text-text-color); } /* шрифт Inter подключает проект */
+.df-head *, .df-panel *, .df-head *::before, .df-panel *::before { box-sizing: border-box; }
+.df-panel button { font: inherit; color: inherit; background: none; border: 0; padding: 0; margin: 0; cursor: pointer; }
+
+/* ---------- Шапка: (сцена + зазор + панель) × 80 — название, версия, статус ---------- */
+.df-head { position: fixed; z-index: 2; top: 0; left: 0; width: calc(var(--df-w) + var(--df-gap) + var(--df-panel-w)); height: var(--df-head-h); transform-origin: 0 0; padding: 14px 16px 0 10px; }
+.df-head__link { display: inline-flex; align-items: center; gap: 16px; padding-left: 4px; color: inherit; text-decoration: none; }
+.df-head__back { flex: none; width: 9.23px; height: 16px; display: flex; color: var(--icon-primary_icon-color); }
+.df-head__back svg { width: 100%; height: 100%; }
+.df-head__title { margin: 0; font-size: 24px; line-height: 28px; font-weight: 600; letter-spacing: -.3384px; color: var(--text-text-color); white-space: nowrap; }
+.df-head__ver { margin-left: 4px; font-weight: 500; color: var(--text-label_text-color); }
+.df-head__sub { margin-top: 9px; padding-left: 29.23px; font-size: 15px; line-height: 18px; letter-spacing: -.2115px; color: var(--text-unaccented_hover_text-color); white-space: nowrap; }
+.df-head__sub--plain { padding-left: 4px; }
+
+/* ---------- Панель справа от сцены: высота сцены, ширина 300 ---------- */
+.df-panel {
+  position: fixed; top: 0; left: 0; width: var(--df-panel-w); height: var(--df-h); overflow-y: auto; transform-origin: 0 0;
+  display: flex; flex-direction: column; justify-content: space-between; gap: 12px;
+  background: var(--background-background-color); font-size: 14px; letter-spacing: -.1974px;
+}
+.df-panel__top { display: flex; flex-direction: column; gap: 6px; margin-bottom: auto; } /* всё свободное место — между верхними и нижними сценариями */
+
+/* устройство и размер */
+.df-devices { display: flex; gap: 4px; padding-left: 6px; }
+.df-device { width: 40px; height: 20px; border-radius: 10px; display: flex; align-items: center; justify-content: center; background: var(--background-background-color); box-shadow: 0 0 var(--blur-shadow-blur_d) var(--color-shadow-color_d); color: var(--icon-label_icon-color); }
+.df-device svg { display: block; }
+.df-device:disabled { cursor: default; }
+.df-device.is-on { background: var(--extra-item_selected_color); color: var(--extra-item_selected_icon-color); cursor: default; }
+.df-size { display: flex; height: 20px; align-items: center; gap: 6px; padding-left: 6px; font-size: 12px; letter-spacing: -.1692px; color: var(--text-label_text-color); }
+
+/* карточки */
+.df-card { display: flex; flex-direction: column; gap: 6px; padding: 6px; border-radius: 8px; background: var(--background-contrast_background-color); }
+.df-card--scen { gap: 2px; }
+.df-card--bottom { margin: 0 0 -6px; } /* вплотную над карточкой со ссылками: общий зазор панели 12 − 6 = 6 */
+
+/* сценарии: группы, радиокнопки, вилки */
+.df-group { padding: 12px 6px 6px; font-size: 14px; letter-spacing: -.1974px; text-transform: uppercase; color: var(--text-text-color); }
+.df-options { display: flex; flex-direction: column; gap: 2px; padding: 4px 6px; border-radius: 8px; background: var(--background-background-color); }
+.df-radio { display: flex; align-items: flex-start; text-align: left; }
+.df-sub { display: flex; flex-direction: column; gap: 2px; padding-left: 16px; } /* вилка: подсценарии с отступом 16 */
+.df-radio__box { width: 20px; height: 24px; flex: none; display: flex; align-items: center; justify-content: center; }
+.df-radio__box::before { content: ""; width: 12px; height: 12px; border: 1px solid var(--border-unaccented_border-color); border-radius: 6px; }
+.df-radio.is-on .df-radio__box::before { border-color: var(--background-contrast-primary_color); background: var(--background-contrast-primary_color); box-shadow: inset 0 0 0 1px var(--background-background-color); } /* кольцо 1 + зазор 1 + точка 8 */
+.df-radio.is-on, .df-radio:disabled { cursor: default; }
+.df-radio__text { padding: 3px 0 4px; color: var(--components-toggle-text-color_switcher); white-space: nowrap; }
+.df-radio.is-on .df-radio__text { color: var(--components-toggle-selected_text-color_switcher); }
+.df-radio:not(.is-on, :disabled):hover .df-radio__box::before { border-color: var(--background-contrast-primary_color); }
+.df-radio:not(.is-on, :disabled):hover .df-radio__text { text-decoration: underline; }
+
+/* ссылки и команда */
+.df-links { display: flex; flex-direction: column; gap: 4px; padding: 2px 6px; }
+.df-link { display: flex; align-items: center; gap: 6px; color: var(--text-label_text-color); text-decoration: none; }
+.df-link__ico { flex: none; width: 16px; height: 16px; margin-top: -1px; display: flex; }
+.df-link__ico svg { display: block; width: 16px; height: 16px; }
+.df-link span:last-child { padding: 3px 0 4px; }
+.df-link:hover span:last-child, .df-team__link:hover { text-decoration: underline from-font; text-underline-position: from-font; }
+.df-team { display: flex; align-items: flex-start; gap: 8px; padding: 8px 6px; border-radius: 8px; background: var(--background-background-color); }
+.df-team__label { flex: none; width: 54px; color: var(--text-label_text-color); }
+.df-team__info { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+.df-team__name { color: var(--text-text-color); }
+.df-team__link { color: var(--text-secondary_text-color); text-decoration: none; }

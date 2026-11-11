@@ -1,5 +1,5 @@
 # Публикация на GitHub Pages: каждый пуш в main (и ручной запуск).
-# Сборки нет — на сайт уходят только index.html и assets/; .claude/ и план в публикацию не попадают.
+# Сборки нет — на сайт уходят только index.html, assets/ и vendor/; .claude/ и план в публикацию не попадают.
 name: Pages
 
 on:
@@ -29,6 +29,7 @@ jobs:
           mkdir _site
           cp index.html _site/
           cp -r assets _site/
+          cp -r vendor _site/
           touch _site/.nojekyll
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
