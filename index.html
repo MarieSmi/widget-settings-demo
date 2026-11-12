@@ -281,7 +281,7 @@ button:focus-visible { outline: 2px solid var(--border-info); outline-offset: 2p
   position: relative;
   z-index: 2;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: var(--sp-s);
   border: 1px dashed var(--border-info);
   border-radius: var(--r-3xs);
@@ -304,6 +304,7 @@ button:focus-visible { outline: 2px solid var(--border-info); outline-offset: 2p
   padding: var(--sp-m);
   border-radius: var(--r-s);
 }
+.env-card--blue { height: 400px; align-self: flex-start; margin-top: -1px; }
 .env-card--blue .env-card__in {
   background: linear-gradient(90deg, rgba(255,255,255,.5), rgba(255,255,255,.5)), linear-gradient(-53.5deg, #ebf4ff 0%, #fff 100%);
 }
@@ -605,9 +606,12 @@ button:focus-visible { outline: 2px solid var(--border-info); outline-offset: 2p
 .w__col--b { width: var(--col-b); }
 .w__col svg { flex: none; color: var(--icon-label); }
 .w__content { overflow: hidden; }
+/* обрезка — по нижнему краю самого виджета: контент заходит в нижний внутренний отступ */
+.w:not([data-fill="content"]) .w__content[data-clip="on"] { margin-bottom: calc(-1 * var(--pad-b)); }
+.w__content[data-clip="on"] { -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 26px), rgba(0, 0, 0, 0.3) 100%); mask-image: linear-gradient(to bottom, #000 calc(100% - 26px), rgba(0, 0, 0, 0.3) 100%); }
 
 /* Вариант «Виджет с блочным контентом» (Новости): карточки фиксированного размера, лишние обрезаются шириной виджета */
-.w__news{display:none;gap:8px;height:224px;flex:none}
+.w__news{display:none;gap:8px;height:var(--nc-h,224px);flex:none}
 .w[data-kind="blocks"] .w__news{display:flex}
 .w[data-kind="blocks"] .w__table,.w[data-kind="blocks"] .w__cols,.w[data-kind="blocks"] .w__lines,.w[data-kind="blocks"] .moreButton{display:none}
 /* Заголовок не должен прилипать к маркеру при левом отступе 0: добираем до 12 px, а при отступе ≥ 12 своих добавок нет */
@@ -617,15 +621,15 @@ button:focus-visible { outline: 2px solid var(--border-info); outline-offset: 2p
 .w[data-kind="blocks"] .w__header{padding-left:max(0px, calc(12px - var(--pad-l)))}
 .w[data-kind="blocks"][data-fill="content"] .w__header{padding-left:max(var(--pad-l), 12px)}
 .w[data-kind="blocks"]:not([data-fill="content"]) .w__content{margin-right:calc(-1 * var(--pad-r))}
-.ncard{position:relative;flex:none;width:156px;height:224px;box-sizing:border-box;border-radius:8px;overflow:hidden;background:var(--nc-bg);color:#000;display:flex;flex-direction:column;padding:0 12px 12px}
-.ncard__cover{flex:none;margin:0 -12px 0;height:100px;background:var(--nc-cover,none);-webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 35%,transparent 100%);mask-image:linear-gradient(to bottom,#000 0%,#000 35%,transparent 100%)}
+.ncard{position:relative;flex:none;width:156px;height:var(--nc-h,224px);box-sizing:border-box;border-radius:8px;overflow:hidden;background:var(--nc-bg);color:#000;display:flex;flex-direction:column;padding:0 12px 12px}
+.ncard__cover{flex:none;margin:0 -12px 0;height:var(--nc-cover-h,100px);background:var(--nc-cover,none);-webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 35%,transparent 100%);mask-image:linear-gradient(to bottom,#000 0%,#000 35%,transparent 100%)}
 .ncard--thumb .ncard__cover{height:auto;margin:12px 0 8px;background:none;-webkit-mask-image:none;mask-image:none}
 .ncard__thumb{width:64px;height:64px;border-radius:8px;background:url(https://images.unsplash.com/photo-1764399124980-69e858c601a3?w=160&q=70&auto=format&fit=crop) center / cover no-repeat, linear-gradient(180deg,#8fb4e8 0%,#5c7fc0 45%,#2f4a86 100%)}
 .ncard__t{margin:0 0 4px;font-size:16px;line-height:20px;font-weight:var(--fw-bold);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.ncard__d{margin:0;font-size:14px;line-height:20px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ncard__d{margin:0;font-size:14px;line-height:20px;display:-webkit-box;-webkit-line-clamp:var(--nc-lines,2);-webkit-box-orient:vertical;overflow:hidden}
 .ncard__c{margin-top:auto;display:flex;align-items:center;gap:4px;font-size:14px;line-height:20px;color:inherit}
 .ncard--thumb .ncard__c{color:#7a85a8}
-.ncard--thumb .ncard__d{-webkit-line-clamp:3}
+.ncard--thumb .ncard__d{-webkit-line-clamp:calc(var(--nc-lines,2) + 1)}
 
 /* Уникальные настройки виджета «Новости» */
 .news-set{gap:12px}
@@ -654,7 +658,7 @@ button:focus-visible { outline: 2px solid var(--border-info); outline-offset: 2p
 /* Строки подбираются под высоту виджета (fitTable в скрипте): влезают целыми, лишние скрыты — пустых «дыр» внизу нет */
 .w__grp { display: flex; flex-direction: column; gap: 8px; }
 .w__row[hidden] { display: none; }
-.w__grp--bold { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border-pale, #e5e7eb); }
+.w__grp--bold { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-pale, #e5e7eb); }
 .w__grp--main[hidden] + .w__grp--bold { margin-top: 0; padding-top: 0; border-top: 0; }
 .w__row { display: flex; align-items: baseline; gap: var(--col-gap); height: 24px; line-height: 24px; }
 .w__who { flex: 1; min-width: 0; display: flex; align-items: baseline; gap: 4px; white-space: nowrap; }
@@ -2049,7 +2053,7 @@ const DEFAULT_STATE = {
   // min/max — краевые значения «Добавить» (null — не добавлены)
   size: {
     w: { mode: "fill", px: 557, pct: 100 },
-    h: { mode: "auto", px: 240, pct: 100 },
+    h: { mode: "px", px: 290, pct: 100 },
     minW: null, maxW: null, minH: null, maxH: null,
   },
   // Отступы по сторонам; split — раскрыт редактор по сторонам (PropertyGrid 24008:202564)
@@ -2068,7 +2072,7 @@ const DEFAULT_STATE = {
   border: { on: false, color: "#a39c97", opacity: 100, style: "solid",
             top: 1, right: 1, bottom: 1, left: 1, split: false },                        // границы по сторонам
 };
-const CELL = { w: 557, h: 280 };
+const CELL = { w: 557, h: 401 };
 
 // Цвет части с учётом прозрачности; null — «нет цвета»
 function partColor(key, part = state[key]) {
@@ -2141,7 +2145,7 @@ widgetSlot.innerHTML = `
     <div class="w__content">
       <div class="w__lines" aria-label="Контент виджета"><div class="w__line"></div><div class="w__line"></div><div class="w__line"></div><div class="w__line"></div></div>
       <div class="w__news" aria-label="Контент виджета">${newsCardsHTML()}</div>
-      <div class="w__table" aria-label="Контент виджета"><div class="w__grp w__grp--main"><div class="w__row"><span class="w__who"><span class="w__name">Газпром, ПАО</span><span class="w__city">Санкт-Петербург</span></span><span class="w__num w__num--a">5 846 352</span><span class="w__num w__num--b">2 666 585</span></div><div class="w__row"><span class="w__who"><span class="w__name">Сбербанк, ПАО</span><span class="w__city">Москва</span></span><span class="w__num w__num--a">4 544 055</span><span class="w__num w__num--b"></span></div><div class="w__row"><span class="w__who"><span class="w__name">ЛУКойл, ПАО</span><span class="w__city">Москва</span></span><span class="w__num w__num--a">3 453 224</span><span class="w__num w__num--b">5 336 348</span></div><div class="w__row"><span class="w__who"><span class="w__name">Агроторг, ООО</span><span class="w__city">Санкт-Петербург</span></span><span class="w__num w__num--a">3 440 848</span><span class="w__num w__num--b">176 097</span></div><div class="w__row"><span class="w__who"><span class="w__name">Тандер, АО (Магнит)</span><span class="w__city">Краснодар</span></span><span class="w__num w__num--a">3 050 026</span><span class="w__num w__num--b">195 656</span></div><div class="w__row"><span class="w__who"><span class="w__name">Банк ВТБ, ПАО</span><span class="w__city">Санкт-Петербург</span></span><span class="w__num w__num--a">2 051 251</span><span class="w__num w__num--b"></span></div></div><div class="w__grp w__grp--bold"><div class="w__row"><span class="w__who"><span class="w__name">Компания &quot;Тензор&quot;, ООО</span><span class="w__city">Ярославль</span></span><span class="w__num w__num--a">22 473</span><span class="w__num w__num--b">16 476</span></div><div class="w__row"><span class="w__who"><span class="w__name">УЦ Саби, ООО</span><span class="w__city">Калининград</span></span><span class="w__num w__num--a">264</span><span class="w__num w__num--b">116</span></div><div class="w__row"><span class="w__who"><span class="w__name">Мили, ООО</span><span class="w__city">Ярославль</span></span><span class="w__num w__num--a">247</span><span class="w__num w__num--b">187</span></div><div class="w__row"><span class="w__who"><span class="w__name">Квеста Бухобслуживание, ООО</span><span class="w__city">Ярославль</span></span><span class="w__num w__num--a">53</span><span class="w__num w__num--b">140</span></div></div></div>
+      <div class="w__table" aria-label="Контент виджета"><div class="w__grp w__grp--main"><div class="w__row"><span class="w__who"><span class="w__name">Газпром, ПАО</span><span class="w__city">Санкт-Петербург</span></span><span class="w__num w__num--a">5 846 352</span><span class="w__num w__num--b">2 666 585</span></div><div class="w__row"><span class="w__who"><span class="w__name">Сбербанк, ПАО</span><span class="w__city">Москва</span></span><span class="w__num w__num--a">4 544 055</span><span class="w__num w__num--b"></span></div><div class="w__row"><span class="w__who"><span class="w__name">ЛУКойл, ПАО</span><span class="w__city">Москва</span></span><span class="w__num w__num--a">3 453 224</span><span class="w__num w__num--b">5 336 348</span></div><div class="w__row"><span class="w__who"><span class="w__name">Агроторг, ООО</span><span class="w__city">Санкт-Петербург</span></span><span class="w__num w__num--a">3 440 848</span><span class="w__num w__num--b">176 097</span></div><div class="w__row"><span class="w__who"><span class="w__name">Тандер, АО (Магнит)</span><span class="w__city">Краснодар</span></span><span class="w__num w__num--a">3 050 026</span><span class="w__num w__num--b">195 656</span></div><div class="w__row"><span class="w__who"><span class="w__name">Банк ВТБ, ПАО</span><span class="w__city">Санкт-Петербург</span></span><span class="w__num w__num--a">2 051 251</span><span class="w__num w__num--b"></span></div><div class="w__row"><span class="w__who"><span class="w__name">Магнит, ПАО</span><span class="w__city">Краснодар</span></span><span class="w__num w__num--a">1 874 310</span><span class="w__num w__num--b">98 420</span></div><div class="w__row"><span class="w__who"><span class="w__name">Ростелеком, ПАО</span><span class="w__city">Москва</span></span><span class="w__num w__num--a">1 602 775</span><span class="w__num w__num--b"></span></div><div class="w__row"><span class="w__who"><span class="w__name">Лента, ООО</span><span class="w__city">Санкт-Петербург</span></span><span class="w__num w__num--a">1 255 640</span><span class="w__num w__num--b">74 118</span></div><div class="w__row"><span class="w__who"><span class="w__name">Новатэк, ПАО</span><span class="w__city">Москва</span></span><span class="w__num w__num--a">1 120 390</span><span class="w__num w__num--b">310 042</span></div><div class="w__row"><span class="w__who"><span class="w__name">Уралкалий, ПАО</span><span class="w__city">Березники</span></span><span class="w__num w__num--a">987 214</span><span class="w__num w__num--b"></span></div><div class="w__row"><span class="w__who"><span class="w__name">Мечел, ПАО</span><span class="w__city">Москва</span></span><span class="w__num w__num--a">854 902</span><span class="w__num w__num--b">61 337</span></div></div><div class="w__grp w__grp--bold"><div class="w__row"><span class="w__who"><span class="w__name">Компания &quot;Тензор&quot;, ООО</span><span class="w__city">Ярославль</span></span><span class="w__num w__num--a">22 473</span><span class="w__num w__num--b">16 476</span></div><div class="w__row"><span class="w__who"><span class="w__name">УЦ Саби, ООО</span><span class="w__city">Калининград</span></span><span class="w__num w__num--a">264</span><span class="w__num w__num--b">116</span></div><div class="w__row"><span class="w__who"><span class="w__name">Мили, ООО</span><span class="w__city">Ярославль</span></span><span class="w__num w__num--a">247</span><span class="w__num w__num--b">187</span></div><div class="w__row"><span class="w__who"><span class="w__name">Квеста Бухобслуживание, ООО</span><span class="w__city">Ярославль</span></span><span class="w__num w__num--a">53</span><span class="w__num w__num--b">140</span></div></div></div>
     </div>
     ${moreButtonHTML({ static: true })}
   </article>`;
@@ -2153,6 +2157,28 @@ const wIcon = document.getElementById("w-icon");
 
 // Подбор строк таблицы под высоту виджета: минимум по 2 строки в каждой группе, дальше добавляем по строке,
 // пока помещается (сначала жирная группа до 3, потом первая, потом жирная). Высота «по контенту» — показаны все.
+// «Новости»: общая высота виджета не зависит от заголовка. Когда заголовок выключен, освободившееся место
+// отдаём плашкам: сначала новыми строками описания (по 20 px), остаток — высоте картинки
+function fitNews() {
+  if (w.dataset.kind !== "blocks") return;
+  const news = w.querySelector(".w__news");
+  const off = w.dataset.title === "off";
+  const top = () => news.getBoundingClientRect().top - w.getBoundingClientRect().top;
+  const scale = w.getBoundingClientRect().height / (w.offsetHeight || 1) || 1;
+  w.style.removeProperty("--nc-h"); w.style.removeProperty("--nc-lines"); w.style.removeProperty("--nc-cover-h");
+  const tOff = top();
+  let extra = 0;
+  if (off) {
+    w.dataset.title = "on";                       // замеряем, где начинались бы плашки при включённом заголовке
+    extra = Math.max(0, (top() - tOff) / scale);
+    w.dataset.title = "off";
+  }
+  const lines = Math.floor(extra / 20);
+  w.style.setProperty("--nc-h", 224 + Math.round(extra) + "px");
+  w.style.setProperty("--nc-lines", 2 + lines);
+  w.style.setProperty("--nc-cover-h", 100 + Math.round(extra - lines * 20) + "px");
+}
+
 function fitTable() {
   const table = w.querySelector(".w__table");
   if (!table || w.dataset.kind === "demo") return;
@@ -2160,21 +2186,20 @@ function fitTable() {
   const r1 = [...g1.children], r2 = [...g2.children];
   const show = (g, rows, n) => { rows.forEach((r, i) => { r.hidden = i >= n; }); g.hidden = n === 0; };
   if (state.size.h.mode === "auto") { show(g1, r1, r1.length); show(g2, r2, r2.length); return; }
-  const ROW = 24, GAP = 8, DIV = 33;
+  const ROW = 24, GAP = 8, DIV = 25, FADE = 8;   // FADE — запас снизу под кнопку «Показать ещё»
   const content = w.querySelector(".w__content");
+  delete content.dataset.clip;                   // замер без захода контента в нижний отступ — иначе результат «прыгает»
   const cs = getComputedStyle(content);
-  const avail = content.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - 16 - 2;   // свои отступы контента (у «На контенте» они больше), место под moreButton
+  const full = content.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
   const h = (n) => (n ? n * ROW + (n - 1) * GAP : 0);
   const total = (a, b) => h(a) + (a && b ? DIV : 0) + h(b);
-  let n1 = Math.min(2, r1.length), n2 = Math.min(2, r2.length);
-  while (n1 + n2 > 1 && total(n1, n2) > avail) { if (n1 > 0) n1--; else n2--; }
-  for (let grow = true; grow;) {
-    grow = false;
-    for (const target of ["g2", "g1", "g2"]) {
-      if (target === "g2" && n2 < r2.length && total(n1, n2 + 1) <= avail) { n2++; grow = true; }
-      else if (target === "g1" && n1 < r1.length && total(n1 + 1, n2) <= avail) { n1++; grow = true; }
-    }
-  }
+  // Жирная группа всегда из трёх строк; сколько обычных строк над ней — зависит от высоты.
+  // Нижние FADE px — зона «замыливания»: всё, что туда не помещается, уходит под затухание
+  const n2 = Math.min(3, r2.length);
+  let n1 = r1.length;
+  while (n1 > 0 && total(n1, n2) > full - FADE) n1--;
+  // Добавляем ещё одну обычную строку, которая целиком не помещается: нижний край виджета «замыливает» то, что не влезло
+  if (n1 > 0 && n1 < r1.length) { n1++; content.dataset.clip = "on"; }
   show(g1, r1, n1); show(g2, r2, n2);
 }
 
@@ -2237,6 +2262,7 @@ function renderWidget() {
     w.style.setProperty(`--pad-${side}`, v + "px");
   }
   fitTable();
+  fitNews();
 }
 
 // Применить пресет стиля: раскладка и включённость элементов; выбранные цвета сохраняются
