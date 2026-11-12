@@ -276,26 +276,48 @@ button:focus-visible { outline: 2px solid var(--border-info); outline-offset: 2p
   isolation: isolate;
 }
 
-/* Строка с виджетом: пунктирная рамка выбранной строки */
+/* Строка-компоновщик: пунктир 4px/4px (@info-border) по краю, внутри — две ячейки; рамка не перекрывает ячейки */
 .env-row1 {
   position: relative;
   z-index: 2;
   display: flex;
   align-items: flex-start;
   gap: var(--sp-s);
-  border: 1px dashed var(--border-info);
-  border-radius: var(--r-3xs);
+}
+.env-row1::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  --d: var(--border-info);
+  background:
+    repeating-linear-gradient(90deg, var(--d) 0 4px, transparent 4px 8px) top / 100% 1px no-repeat,
+    repeating-linear-gradient(90deg, var(--d) 0 4px, transparent 4px 8px) bottom / 100% 1px no-repeat,
+    repeating-linear-gradient(0deg, var(--d) 0 4px, transparent 4px 8px) left / 1px 100% no-repeat,
+    repeating-linear-gradient(0deg, var(--d) 0 4px, transparent 4px 8px) right / 1px 100% no-repeat;
 }
 .env-row2 { position: relative; z-index: 1; display: flex; height: 240px; }
 
-/* Соседний блок-заглушка */
+/* Ячейка с виджетом-заглушкой; по ховеру — сплошная рамка (кликов нет) */
 .env-card {
+  position: relative;
   flex: 1;
   min-width: 0;
   align-self: stretch;
   display: flex;
   filter: drop-shadow(var(--shadow-widget));
 }
+.env-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 1px solid var(--border-info);
+  border-radius: 2px;
+  opacity: 0;
+  pointer-events: none;
+}
+.env-card:hover::after { opacity: 1; }
 .env-card__in {
   flex: 1;
   display: flex;
@@ -304,7 +326,7 @@ button:focus-visible { outline: 2px solid var(--border-info); outline-offset: 2p
   padding: var(--sp-m);
   border-radius: var(--r-s);
 }
-.env-card--blue { height: 400px; align-self: flex-start; margin-top: -1px; }
+.env-card--blue { height: 400px; align-self: flex-start; }
 .env-card--blue .env-card__in {
   background: linear-gradient(90deg, rgba(255,255,255,.5), rgba(255,255,255,.5)), linear-gradient(-53.5deg, #ebf4ff 0%, #fff 100%);
 }
@@ -331,10 +353,8 @@ button:focus-visible { outline: 2px solid var(--border-info); outline-offset: 2p
 }
 .sk-block { flex: none; width: 100%; height: 80px; border-radius: var(--r-s); background: rgba(0, 0, 0, 0.03); }
 
-/* Ячейка виджета: окно настроек слева, виджет в рамке выделения */
-/* Рамка виджета ложится ровно поверх пунктира строки (сверху, справа, снизу): иначе две линии рядом при дробном
-   масштабе сцены сливаются в рваную двойную линию */
-.env-widget { position: relative; flex: none; width: var(--widget-w); margin: -1px -1px -1px 0; }
+/* Ячейка виджета: окно настроек слева, виджет в рамке выделения (рамка строки — снаружи, ничего не перекрывает) */
+.env-widget { position: relative; z-index: 2; flex: none; width: var(--widget-w); }
 
 /* Ручка изменения ширины дашборда */
 .env-drag { position: absolute; left: -16px; top: -1px; width: 16px; height: 753px; pointer-events: none; }
@@ -2072,7 +2092,7 @@ const DEFAULT_STATE = {
   border: { on: false, color: "#a39c97", opacity: 100, style: "solid",
             top: 1, right: 1, bottom: 1, left: 1, split: false },                        // границы по сторонам
 };
-const CELL = { w: 557, h: 401 };
+const CELL = { w: 557, h: 400 };
 
 // Цвет части с учётом прозрачности; null — «нет цвета»
 function partColor(key, part = state[key]) {
